@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* --- Lightテーマ（事業概要のトーンに寄せる） --- */
+    /* --- Brandable palette (必要に応じて微調整OK) --- */
     :root{
       --bg:#f6faf7;         /* 明るい背景 */
       --panel:#ffffff;      /* カード */
@@ -44,17 +44,15 @@
     .h1{font-size:28px;font-weight:700;margin:0 0 8px}
     .sub{color:var(--sub)}
 
-    /* 2x2 バランス配置（上段：芋x2、下段：米x2） */
     .grid{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
-    @media(min-width:920px){.grid{grid-template-columns:repeat(4,1fr)}}
+    @media(min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}}
 
     .card{background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,1));border:1px solid var(--line);border-radius:16px;overflow:hidden}
     .panel{padding:20px 20px;background:var(--panel)}
 
-    .product-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);cursor:pointer;transition:outline 120ms ease}
+    .product-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);cursor:pointer}
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
-    .product-card.selected{outline:3px solid var(--brand)}
 
     .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;}
     .btn.primary{background:linear-gradient(180deg,var(--brand),#099268);color:#fff;border-color:transparent}
@@ -62,18 +60,16 @@
     .choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .chip{padding:10px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#f7f7f9;color:var(--text)}
     .chip[aria-checked="true"],.chip:hover{outline:2px solid var(--brand)}
-
     .qty{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:8px}
-    .qty input{width:80px;text-align:center;background:transparent;color:var(--text);border:none;outline:none}
-    .qty button{width:40px;background:var(--muted);color:var(--text);border:none;cursor:pointer}
+    .qty input{width:72px;text-align:center;background:transparent;color:var(--text);border:none;outline:none}
+    .qty button{width:38px;background:var(--muted);color:var(--text);border:none;cursor:pointer}
     .cta{display:flex;gap:12px;margin-top:14px}
     .notice{font-size:12px;color:var(--sub);margin-top:8px}
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
-    /* 購入パネル：グリッドの下に固定表示（カードのサイズを変えない） */
-    #picker-host{margin-top:22px}
-    .picker{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px}
+    /* 展開パネル */
+    .picker{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px;margin:12px 0}
     .picker h2{margin:0}
     .form-grid{display:grid;gap:10px;margin-top:12px}
     @media(min-width:720px){
@@ -104,32 +100,32 @@
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
     <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → お届け先入力 → Stripe決済（カート無し）。</p>
 
-    <!-- 上段：芋（シルクスイート／べにはるか） → 下段：米（コシヒカリ／ふさおとめ） -->
+    <!-- 上段：芋（シルクスイート／べにはるか） -->
+    <!-- 下段：米（コシヒカリ／ふさおとめ） -->
     <section class="grid" id="product-list">
-      <!-- 芋A（左上） -->
+      <!-- 芋A -->
       <article class="product-card" data-product="imoA">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B7%E3%83%AB%E3%82%AF%E3%82%B9%E3%82%A4%E3%83%BC%E3%83%88" alt="シルクスイート">
         <div class="meta"><div>シルクスイート</div><div class="sub">¥580〜</div></div>
       </article>
-      <!-- 芋B（右上） -->
+      <!-- 芋B -->
       <article class="product-card" data-product="imoB">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B9%E3%81%AB%E3%81%AF%E3%82%8B%E3%81%8B" alt="べにはるか">
         <div class="meta"><div>べにはるか</div><div class="sub">¥480〜</div></div>
       </article>
-      <!-- 米A（左下） -->
+      <!-- 米A -->
       <article class="product-card" data-product="komeA">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B3%E3%82%B7%E3%83%92%E3%82%AB%E3%83%AA" alt="コシヒカリ">
         <div class="meta"><div>コシヒカリ</div><div class="sub">¥2,480〜</div></div>
       </article>
-      <!-- 米B（右下） -->
+      <!-- 米B -->
       <article class="product-card" data-product="komeB">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B5%E3%81%95%E3%81%8A%E3%81%A8%E3%82%81" alt="ふさおとめ">
         <div class="meta"><div>ふさおとめ</div><div class="sub">¥2,280〜</div></div>
       </article>
     </section>
 
-    <!-- ここに購入パネルを表示（グリッドの外・下固定） -->
-    <div id="picker-host"></div>
+    <!-- パネルはJSで商品カード直後に差し込み -->
   </main>
 
   <footer class="container">
@@ -172,7 +168,7 @@
     // 47都道府県
     const PREFS = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
 
-    // パネルHTML（#picker-host内に表示）
+    // パネルのテンプレ（ID重複を避けるためクラスで取得）
     function renderPicker(key){
       const meta = PRICE_MAP[key];
       const sizeChips = meta.sizes.map((s,i)=>
@@ -181,7 +177,6 @@
            ${s.label}
          </button>`).join('');
       const prefOpts = PREFS.map(p=>`<option value="${p}">${p}</option>`).join('');
-
       return `
         <div class="picker" data-open-for="${key}">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -198,30 +193,30 @@
             <label class="sub">数量を選択</label>
             <div class="qty" aria-label="数量">
               <button type="button" class="qty-dec" aria-label="減らす">−</button>
-              <input type="number" class="qty-input" value="1" min="1" step="1" inputmode="numeric" pattern="[0-9]*" aria-label="数量">
+              <input type="number" class="qty-input" value="1" min="1" inputmode="numeric" pattern="[0-9]*" aria-label="数量">
               <button type="button" class="qty-inc" aria-label="増やす">＋</button>
             </div>
-            <div class="help">※ マウスホイール・e/± 入力は無効、1以上の半角数字のみ</div>
+            <div class="help">※ 1以上の半角数字のみ</div>
           </div>
 
           <div class="form-grid">
             <div class="full">
-              <label class="sub">氏名</label>
+              <label class="sub" for="">氏名</label>
               <input class="input ship-name" type="text" placeholder="山田 太郎" autocomplete="name" required>
             </div>
             <div>
-              <label class="sub">都道府県</label>
+              <label class="sub" for="">都道府県</label>
               <select class="select ship-pref" autocomplete="address-level1" required>
                 <option value="" selected disabled>選択してください</option>
                 ${prefOpts}
               </select>
             </div>
             <div>
-              <label class="sub">住所1（市区町村・番地）</label>
+              <label class="sub" for="">住所1（市区町村・番地）</label>
               <input class="input ship-addr1" type="text" placeholder="新宿区西新宿2-8-1" autocomplete="address-line1" required>
             </div>
             <div class="full">
-              <label class="sub">住所2（建物名・部屋番号 任意）</label>
+              <label class="sub" for="">住所2（建物名・部屋番号 任意）</label>
               <input class="input ship-addr2" type="text" placeholder="〇〇マンション101号室" autocomplete="address-line2">
             </div>
           </div>
@@ -233,51 +228,35 @@
         </div>`;
     }
 
-    // 数量のバリデーション（1以上の整数／ホイール無効）
+    // 数量のバリデーション（整数・最小1）
     function sanitizeQty(input){
-      const cleaned = String(input.value).replace(/[^0-9]/g,'');
-      const val = Math.max(1, parseInt(cleaned || '1',10));
+      const val = Math.max(1, parseInt(String(input.value).replace(/[^0-9]/g,''),10) || 1);
       input.value = val;
       return val;
     }
 
-    const host = document.getElementById('picker-host');
-
-    // 商品クリック → グリッドはそのまま、下の #picker-host に購入パネル表示
+    // 商品クリック → カード直下にパネルを挿入
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
-        // 選択状態の見た目
-        document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('selected'));
-        card.classList.add('selected');
-
         const key = card.dataset.product;
         const meta = PRICE_MAP[key];
         if(!meta || !meta.sizes || meta.sizes.length===0){
           alert('商品またはサイズ定義がありません: ' + key); return;
         }
 
-        // 既存パネルを差し替え
-        host.innerHTML = renderPicker(key);
+        // 既存のパネルをすべて削除（常に1つだけ開く）
+        document.querySelectorAll('.picker').forEach(p=>p.remove());
 
-        // 要素参照（#picker-host 内）
-        const picker    = host.querySelector('.picker');
+        // カード直後にパネルを挿入
+        card.insertAdjacentHTML('afterend', renderPicker(key));
+
+        // 要素参照（クラスでスコープ）
+        const picker    = card.nextElementSibling;
         const sizeBox   = picker.querySelector('.size-choices');
         const qtyInput  = picker.querySelector('.qty-input');
         const decBtn    = picker.querySelector('.qty-dec');
         const incBtn    = picker.querySelector('.qty-inc');
         const closeBtn  = picker.querySelector('.close-picker');
-
-        // 数量：スクロールで数値が変わるのを防ぐ
-        qtyInput.addEventListener('wheel', (e)=> e.preventDefault(), { passive:false });
-        // 数量：不正キーを弾く
-        qtyInput.addEventListener('keydown', (e)=>{
-          if(['e','E','+','-','.'].includes(e.key)) e.preventDefault();
-        });
-        // 数量：入力補正
-        qtyInput.addEventListener('input', ()=> sanitizeQty(qtyInput));
-        qtyInput.addEventListener('blur',  ()=> sanitizeQty(qtyInput));
-        incBtn.onclick = ()=>{ qtyInput.value = sanitizeQty({value:(+qtyInput.value||1)+1}); };
-        decBtn.onclick = ()=>{ qtyInput.value = Math.max(1, sanitizeQty(qtyInput)-1); };
 
         // サイズ選択
         sizeBox.addEventListener('click',(e)=>{
@@ -286,11 +265,15 @@
           chip.setAttribute('aria-checked','true');
         });
 
-        // 閉じる（選択状態も解除）
-        closeBtn.onclick = ()=>{
-          host.innerHTML = '';
-          card.classList.remove('selected');
-        };
+        // 数量（クリック・手入力どちらも整える）
+        incBtn.onclick = ()=>{ qtyInput.value = sanitizeQty({value:(+qtyInput.value||1)+1}); };
+        decBtn.onclick = ()=>{ qtyInput.value = Math.max(1, sanitizeQty(qtyInput)-1); };
+        qtyInput.addEventListener('input', ()=> sanitizeQty(qtyInput));
+        qtyInput.addEventListener('blur',  ()=> sanitizeQty(qtyInput));
+        qtyInput.addEventListener('keydown', (e)=>{ if(e.key==='e'||e.key==='E'||e.key==='-'||e.key==='+') e.preventDefault(); });
+
+        // 閉じる
+        closeBtn.onclick = ()=> picker.remove();
 
         // Checkout
         picker.querySelector('.do-checkout').onclick = async ()=>{
@@ -316,6 +299,7 @@
               body: JSON.stringify({
                 priceId,
                 quantity: qty,
+                // サーバー側で metadata や order レコードに保存してください
                 metadata: { product: key, size: chosen.dataset.label, name, prefecture: pref, address1: addr1, address2: addr2 }
               })
             });
