@@ -4,11 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | あなたのショップ名</title>
-  <meta name="description" content="4商品の公式ページ。サイズ選択→数量→Stripeで購入（カートなし）。" />
+  <meta name="description" content="4商品をクリック→サイズ→数量→Stripeで購入。カート無しのシンプル決済。" />
   <meta name="robots" content="index,follow" />
-  <!-- Open Graph / Twitter -->
   <meta property="og:title" content="商品一覧 | あなたのショップ名" />
-  <meta property="og:description" content="サイズ選択→数量→Stripeで購入（カートなし）。" />
+  <meta property="og:description" content="4商品をクリック→サイズ→数量→Stripeで購入。カート無し。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -34,23 +33,22 @@
     .crumbs{font-size:12px;color:var(--sub)}
     .crumbs a{color:var(--sub);text-decoration:none}
 
-    .card{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid var(--line);border-radius:16px;overflow:hidden}
-    .panel{padding:20px 20px}
+    .h1{font-size:28px;font-weight:700;margin:0 0 8px}
+    .sub{color:var(--sub)}
 
-    /* List / Related-like grid reused */
     .rel-grid{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
     @media(min-width:720px){.rel-grid{grid-template-columns:repeat(4,1fr)}}
     .rel-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);cursor:pointer}
     .rel-card .meta{padding:10px 12px}
     .rel-card:hover{outline:2px solid var(--brand)}
 
-    .h1{font-size:28px;font-weight:700;margin:0 0 8px}
-    .sub{color:var(--sub)}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid var(--line);border-radius:16px;overflow:hidden}
+    .panel{padding:20px 20px}
     .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;}
     .btn.primary{background:linear-gradient(180deg,var(--brand),#5d3bff);color:#fff}
     .btn.secondary{background:var(--muted);color:var(--text)}
     .choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .chip{padding:8px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--muted)}
+    .chip{padding:10px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--muted);color:var(--text)}
     .chip[aria-checked="true"],.chip:hover{outline:2px solid var(--brand)}
     .qty{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:8px}
     .qty input{width:64px;text-align:center;background:transparent;color:var(--text);border:none}
@@ -61,7 +59,7 @@
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
   </style>
 
-  <!-- Stripe.js -->
+  <!-- Stripe.js（公開鍵はJS内で設定） -->
   <script src="https://js.stripe.com/v3"></script>
 </head>
 <body>
@@ -74,10 +72,11 @@
     </div>
   </header>
 
-  <!-- 一覧 -->
   <main class="container">
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
-    <p class="sub" style="margin:0 0 12px">商品を選ぶと、サイズ→数量→Stripe決済の順で進みます（カートなし）。</p>
+    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → Stripe決済（カート無し）。</p>
+
+    <!-- ★ここが“商品だけ”のカード。data-product を必ず付与 -->
     <section class="rel-grid" id="product-list">
       <article class="rel-card" data-product="komeA">
         <img src="https://via.placeholder.com/600x600.png?text=Kome+A" alt="米A">
@@ -139,42 +138,34 @@
     // 年表示
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Stripe 公開鍵（テスト）を設定
-    const stripe = Stripe('YOUR_PUBLISHABLE_KEY'); // 例: pk_test_***
+    // Stripe 公開可能キー（後で pk_test_... に差し替え可。未設定でもUIは動く）
+    const stripe = Stripe('pk_test_CHANGE_ME');
 
-    // 商品→サイズ→Price ID 対応（Stripeダッシュボードの price_xxx を貼る）
+    // 商品→サイズ→Price ID（後で price_xxx に差し替え）
     const PRICE_MAP = {
-      komeA: {
-        title: '米A（コシヒカリ）',
+      komeA: { title: '米A（コシヒカリ）',
         sizes: [
-          { label: '5kg',  priceId: 'price_xxx_komeA_5kg' },
-          { label: '10kg', priceId: 'price_xxx_komeA_10kg' }
-        ]
-      },
-      komeB: {
-        title: '米B（あきたこまち）',
+          { label: '5kg',  priceId: 'price_TEST_komeA_5kg' },
+          { label: '10kg', priceId: 'price_TEST_komeA_10kg' }
+        ] },
+      komeB: { title: '米B（あきたこまち）',
         sizes: [
-          { label: '5kg',  priceId: 'price_xxx_komeB_5kg' },
-          { label: '10kg', priceId: 'price_xxx_komeB_10kg' }
-        ]
-      },
-      imoA: {
-        title: '芋A（さつまいも）',
+          { label: '5kg',  priceId: 'price_TEST_komeB_5kg' },
+          { label: '10kg', priceId: 'price_TEST_komeB_10kg' }
+        ] },
+      imoA:  { title: '芋A（さつまいも）',
         sizes: [
-          { label: '1kg', priceId: 'price_xxx_imoA_1kg' },
-          { label: '3kg', priceId: 'price_xxx_imoA_3kg' }
-        ]
-      },
-      imoB: {
-        title: '芋B（じゃがいも）',
+          { label: '1kg', priceId: 'price_TEST_imoA_1kg' },
+          { label: '3kg', priceId: 'price_TEST_imoA_3kg' }
+        ] },
+      imoB:  { title: '芋B（じゃがいも）',
         sizes: [
-          { label: '1kg', priceId: 'price_xxx_imoB_1kg' },
-          { label: '3kg', priceId: 'price_xxx_imoB_3kg' }
-        ]
-      }
+          { label: '1kg', priceId: 'price_TEST_imoB_1kg' },
+          { label: '3kg', priceId: 'price_TEST_imoB_3kg' }
+        ] }
     };
 
-    // モーダル制御
+    // ---- モーダル制御 ----
     const modal   = document.getElementById('buy-modal');
     const titleEl = document.getElementById('modal-title');
     const sizeBox = document.getElementById('size-choices');
@@ -184,8 +175,8 @@
 
     let selected = { productKey:null, priceId:null, sizeLabel:null, qty:1 };
 
-    // 商品クリック → モーダル表示
-    document.querySelectorAll('.rel-card').forEach(card=>{
+    // ★クリック対象は data-product を持つカードだけ
+    document.querySelectorAll('.rel-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
         const meta = PRICE_MAP[key];
@@ -193,8 +184,12 @@
 
         selected = { productKey:key, priceId:null, sizeLabel:null, qty:1 };
         titleEl.textContent = `購入：${meta.title}`;
+
+        // サイズボタン生成（最初の要素を既定選択）
         sizeBox.innerHTML = meta.sizes.map((s,i)=>
-          `<button class="chip" role="option" aria-checked="${i===0}" data-price="${s.priceId}" data-label="${s.label}">${s.label}</button>`
+          `<button class="chip" role="option" aria-checked="${i===0}" data-price="${s.priceId}" data-label="${s.label}">
+            ${s.label}
+          </button>`
         ).join('');
 
         modal.hidden = false;
@@ -205,13 +200,14 @@
 
     document.getElementById('close-modal').onclick = ()=> modal.hidden = true;
 
-    // サイズ選択
+    // サイズ選択のトグル
     sizeBox.addEventListener('click',(e)=>{
       const chip = e.target.closest('.chip'); if(!chip) return;
       sizeBox.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-checked','false'));
       chip.setAttribute('aria-checked','true');
     });
 
+    // 次へ → 数量
     document.getElementById('next-to-qty').onclick = ()=>{
       const chosen = sizeBox.querySelector('.chip[aria-checked="true"]');
       if(!chosen) return alert('サイズを選択してください');
@@ -228,18 +224,19 @@
     stepQty.querySelector('[data-action="inc"]').onclick = ()=> qtyInput.value = (+qtyInput.value||1)+1;
     stepQty.querySelector('[data-action="dec"]').onclick = ()=> qtyInput.value = Math.max(1,(+qtyInput.value||1)-1);
 
-    // Checkoutへ（※別ホストのサーバーレス関数が必要）
+    // Checkoutへ（※サーバーレス関数を用意後にURLを差し替え）
     document.getElementById('checkout').onclick = async ()=>{
+      const qty = Math.max(1, +qtyInput.value||1);
       if(!selected.priceId) return alert('サイズを選択してください');
-      selected.qty = Math.max(1, +qtyInput.value||1);
 
+      const ENDPOINT = 'https://YOUR_SERVER/create-checkout-session'; // ←差し替え
       try{
-        const res = await fetch('YOUR_SERVER_ENDPOINT/create-checkout-session', { // 例: https://your-vercel-app.vercel.app/api/create-checkout-session
+        const res = await fetch(ENDPOINT, {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({
             priceId: selected.priceId,
-            quantity: selected.qty,
+            quantity: qty,
             metadata: { product: selected.productKey, size: selected.sizeLabel }
           })
         });
@@ -247,7 +244,7 @@
         if(!res.ok) throw new Error(data.error || 'エラー');
         await stripe.redirectToCheckout({ sessionId: data.id });
       }catch(err){
-        alert(err.message || '決済開始に失敗しました');
+        alert(err.message || '決済開始に失敗しました（エンドポイント未設定の可能性）');
       }
     };
   </script>
