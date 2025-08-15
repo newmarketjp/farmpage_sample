@@ -38,6 +38,7 @@
 
     .grid{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
     @media(min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}}
+
     .card{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid var(--line);border-radius:16px;overflow:hidden}
     .panel{padding:20px 20px}
 
@@ -59,11 +60,11 @@
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
-    /* hidden を強制的に非表示（ブラウザ差異・テーマ衝突対策） */
-    [hidden]{ display:none !important; }
+    /* 展開パネルの基本 */
+    .picker{border:1px dashed var(--line);border-radius:14px;background:var(--panel);padding:16px;margin:12px 0}
+    .hidden{display:none !important;}
   </style>
 
-  <!-- Stripe.js -->
   <script src="https://js.stripe.com/v3"></script>
 </head>
 <body>
@@ -80,7 +81,7 @@
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
     <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → Stripe決済（カート無し）。</p>
 
-    <!-- ★4商品のみ。必ず data-product を付ける -->
+    <!-- 4商品（カード） -->
     <section class="grid" id="product-list">
       <article class="product-card" data-product="komeA">
         <img src="https://via.placeholder.com/600x600.png?text=Kome+A" alt="米A">
@@ -99,53 +100,23 @@
         <div class="meta"><div>芋B（じゃがいも）</div><div class="sub">¥480〜</div></div>
       </article>
     </section>
+
+    <!-- クリックするとここに“購入パネル”を挿入する -->
+    <div id="picker-host"></div>
   </main>
-
-  <!-- モーダル（初期は必ず hidden） -->
-  <div id="buy-modal" hidden
-       style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:1000;">
-    <div class="card panel" style="width:min(640px,92vw);">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <h2 id="modal-title" class="h1" style="font-size:20px;margin:0">購入</h2>
-        <button id="close-modal" class="btn secondary" style="flex:0 0 auto;padding:6px 10px">閉じる</button>
-      </div>
-
-      <!-- Step 1: サイズ -->
-      <div id="step-size" style="margin-top:10px">
-        <label class="sub">サイズを選択</label>
-        <div id="size-choices" class="choices" role="listbox" aria-label="サイズ"></div>
-        <button id="next-to-qty" class="btn primary" style="margin-top:12px">次へ</button>
-      </div>
-
-      <!-- Step 2: 数量 -->
-      <div id="step-qty" hidden>
-        <label class="sub">数量を選択</label>
-        <div class="qty" aria-label="数量">
-          <button type="button" data-action="dec">−</button>
-          <input type="number" id="modal-qty" value="1" min="1" inputmode="numeric" aria-label="数量">
-          <button type="button" data-action="inc">＋</button>
-        </div>
-        <div class="cta">
-          <button id="checkout" class="btn primary">Stripeで購入</button>
-          <button id="back-to-size" class="btn secondary">戻る</button>
-        </div>
-        <div class="notice">テストカード: 4242 4242 4242 4242 / 任意の期限・CVC</div>
-      </div>
-    </div>
-  </div>
 
   <footer class="container">
     <div>© <span id="year"></span> あなたのショップ名</div>
   </footer>
 
   <script>
-    // ===== 初期セットアップ =====
+    // 年
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Stripe 公開可能キー（後で pk_test_... に差し替え）
+    // Stripe 公開鍵（差し替え）
     const stripe = Stripe('pk_test_CHANGE_ME');
 
-    // 商品 → サイズ → Price ID（後で price_xxx に差し替え）
+    // 商品 → サイズ → Price ID（差し替え）
     const PRICE_MAP = {
       komeA: { title: '米A（コシヒカリ）',
         sizes: [
@@ -169,112 +140,102 @@
         ] }
     };
 
-    // 要素参照
-    const modal    = document.getElementById('buy-modal');
-    const titleEl  = document.getElementById('modal-title');
-    const sizeBox  = document.getElementById('size-choices');
-    const stepSize = document.getElementById('step-size');
-    const stepQty  = document.getElementById('step-qty');
-    const qtyInput = document.getElementById('modal-qty');
+    // 購入パネルのテンプレート（商品keyを受け取ってHTMLを返す）
+    function renderPicker(key){
+      const meta = PRICE_MAP[key];
+      const sizeChips = meta.sizes.map((s,i)=>
+        `<button class="chip" type="button" role="option"
+                 aria-checked="${i===0}" data-price="${s.priceId}" data-label="${s.label}">
+           ${s.label}
+         </button>`).join('');
+      return `
+        <div class="picker" data-open-for="${key}">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h2 class="h1" style="font-size:20px;margin:0">購入：${meta.title}</h2>
+            <button class="btn secondary" id="close-picker">閉じる</button>
+          </div>
+          <div style="margin-top:8px">
+            <label class="sub">サイズを選択</label>
+            <div id="size-choices" class="choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
+          </div>
+          <div style="margin-top:12px">
+            <label class="sub">数量を選択</label>
+            <div class="qty" aria-label="数量">
+              <button type="button" data-action="dec">−</button>
+              <input type="number" id="qty" value="1" min="1" inputmode="numeric" aria-label="数量">
+              <button type="button" data-action="inc">＋</button>
+            </div>
+          </div>
+          <div class="cta">
+            <button id="checkout" class="btn primary">Stripeで購入</button>
+          </div>
+          <div class="notice">テストカード: 4242 4242 4242 4242 / 任意の期限・CVC</div>
+        </div>`;
+    }
 
-    // 念のため初期は必ず閉じる（hidden 強制）
-    modal.setAttribute('hidden','');
+    const host = document.getElementById('picker-host');
+    let openKey = null;
 
-    let selected = { productKey:null, priceId:null, sizeLabel:null, qty:1 };
-
-    // ===== 商品クリック → モーダル表示 =====
+    // 商品クリック → 既存パネルを閉じて、クリックした商品の下にパネルを差し込む
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
-        const key  = card.dataset.product;
+        const key = card.dataset.product;
         const meta = PRICE_MAP[key];
-
-        if(!meta || !Array.isArray(meta.sizes) || meta.sizes.length===0){
-          alert('商品またはサイズ定義が見つかりません: ' + key);
-          return;
+        if(!meta || !meta.sizes || meta.sizes.length===0){
+          alert('商品またはサイズ定義がありません: ' + key); return;
         }
 
-        selected = { productKey:key, priceId:null, sizeLabel:null, qty:1 };
-        titleEl.textContent = `購入：${meta.title}`;
+        // 既存パネルを消す
+        host.innerHTML = '';
+        openKey = key;
 
-        // サイズボタン描画（先頭を既定選択）
-        sizeBox.innerHTML = meta.sizes.map((s,i)=>
-          `<button class="chip" type="button" role="option"
-                   aria-checked="${i===0}" data-price="${s.priceId}" data-label="${s.label}">
-             ${s.label}
-           </button>`
-        ).join('');
+        // カード直後にパネルを表示
+        card.insertAdjacentHTML('afterend', renderPicker(key));
 
-        if(sizeBox.children.length === 0){
-          alert('サイズの描画に失敗しました（id="size-choices" を確認）');
-          return;
-        }
+        // イベントを紐付け
+        const picker = card.nextElementSibling;
+        const sizeBox = picker.querySelector('#size-choices');
+        const qtyInput = picker.querySelector('#qty');
 
-        // ステップ表示と数量初期化
-        stepSize.hidden = false;
-        stepQty.hidden  = true;
-        qtyInput.value  = 1;
+        // チップ選択
+        sizeBox.addEventListener('click',(e)=>{
+          const chip = e.target.closest('.chip'); if(!chip) return;
+          sizeBox.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-checked','false'));
+          chip.setAttribute('aria-checked','true');
+        });
 
-        // ここで初めて開く
-        modal.removeAttribute('hidden');
+        // 数量
+        picker.querySelector('[data-action="inc"]').onclick = ()=> qtyInput.value = (+qtyInput.value||1)+1;
+        picker.querySelector('[data-action="dec"]').onclick = ()=> qtyInput.value = Math.max(1,(+qtyInput.value||1)-1);
+
+        // 閉じる
+        picker.querySelector('#close-picker').onclick = ()=> { picker.remove(); openKey = null; };
+
+        // Checkout
+        picker.querySelector('#checkout').onclick = async ()=>{
+          const chosen = sizeBox.querySelector('.chip[aria-checked="true"]');
+          if(!chosen){ alert('サイズを選択してください'); return; }
+          const priceId = chosen.dataset.price;
+          const qty = Math.max(1, +qtyInput.value||1);
+
+          try{
+            const res = await fetch('https://YOUR_SERVER/create-checkout-session', { // ←差し替え
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({
+                priceId, quantity: qty,
+                metadata: { product: key, size: chosen.dataset.label }
+              })
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error || 'エラー');
+            await stripe.redirectToCheckout({ sessionId: data.id });
+          }catch(err){
+            alert(err.message || '決済開始に失敗しました（エンドポイント未設定の可能性）');
+          }
+        };
       });
     });
-
-    // ===== サイズ選択のトグル =====
-    sizeBox.addEventListener('click',(e)=>{
-      const chip = e.target.closest('.chip'); 
-      if(!chip) return;
-      sizeBox.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-checked','false'));
-      chip.setAttribute('aria-checked','true');
-    });
-
-    // 次へ（サイズ→数量）
-    document.getElementById('next-to-qty').onclick = ()=>{
-      const chosen = sizeBox.querySelector('.chip[aria-checked="true"]');
-      if(!chosen){ alert('サイズを選択してください'); return; }
-      selected.priceId   = chosen.dataset.price;
-      selected.sizeLabel = chosen.dataset.label;
-      stepSize.hidden = true;
-      stepQty.hidden  = false;
-    };
-
-    // 戻る（数量→サイズ）
-    document.getElementById('back-to-size').onclick = ()=>{
-      stepQty.hidden = true;
-      stepSize.hidden = false;
-    };
-
-    // 数量ステッパー
-    stepQty.querySelector('[data-action="inc"]').onclick = ()=> qtyInput.value = (+qtyInput.value||1)+1;
-    stepQty.querySelector('[data-action="dec"]').onclick = ()=> qtyInput.value = Math.max(1,(+qtyInput.value||1)-1);
-
-    // ===== モーダルの閉じ方を強化（ボタン・背景・ESC） =====
-    document.getElementById('close-modal').onclick = ()=> modal.setAttribute('hidden','');
-    modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.setAttribute('hidden',''); });
-    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') modal.setAttribute('hidden',''); });
-
-    // ===== Stripe Checkout へ（サーバーレス関数に POST） =====
-    document.getElementById('checkout').onclick = async ()=>{
-      if(!selected.priceId){ alert('サイズを選択してください'); return; }
-      const qty = Math.max(1, +qtyInput.value||1);
-
-      const ENDPOINT = 'https://YOUR_SERVER/create-checkout-session'; // ←Vercel/Netlify/CloudflareのURLに差し替え
-      try{
-        const res = await fetch(ENDPOINT, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({
-            priceId: selected.priceId,
-            quantity: qty,
-            metadata: { product: selected.productKey, size: selected.sizeLabel }
-          })
-        });
-        const data = await res.json();
-        if(!res.ok) throw new Error(data.error || 'エラー');
-        await stripe.redirectToCheckout({ sessionId: data.id });
-      }catch(err){
-        alert(err.message || '決済開始に失敗しました（エンドポイント未設定の可能性）');
-      }
-    };
   </script>
 </body>
 </html>
