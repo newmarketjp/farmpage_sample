@@ -60,9 +60,8 @@
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
-    /* 展開パネルの基本 */
+    /* 展開パネル */
     .picker{border:1px dashed var(--line);border-radius:14px;background:var(--panel);padding:16px;margin:12px 0}
-    .hidden{display:none !important;}
   </style>
 
   <script src="https://js.stripe.com/v3"></script>
@@ -100,9 +99,6 @@
         <div class="meta"><div>芋B（じゃがいも）</div><div class="sub">¥480〜</div></div>
       </article>
     </section>
-
-    <!-- クリックするとここに“購入パネル”を挿入する -->
-    <div id="picker-host"></div>
   </main>
 
   <footer class="container">
@@ -140,7 +136,7 @@
         ] }
     };
 
-    // 購入パネルのテンプレート（商品keyを受け取ってHTMLを返す）
+    // パネルのテンプレート（商品keyを受け取ってHTMLを返す）
     function renderPicker(key){
       const meta = PRICE_MAP[key];
       const sizeChips = meta.sizes.map((s,i)=>
@@ -173,10 +169,7 @@
         </div>`;
     }
 
-    const host = document.getElementById('picker-host');
-    let openKey = null;
-
-    // 商品クリック → 既存パネルを閉じて、クリックした商品の下にパネルを差し込む
+    // 商品クリック → カード直下に購入パネルを挿入（モーダルは使わない）
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
@@ -185,19 +178,18 @@
           alert('商品またはサイズ定義がありません: ' + key); return;
         }
 
-        // 既存パネルを消す
-        host.innerHTML = '';
-        openKey = key;
+        // 既存のパネルをすべて削除（1つだけ開く）
+        document.querySelectorAll('.picker').forEach(p=>p.remove());
 
-        // カード直後にパネルを表示
+        // カード直後にパネルを挿入
         card.insertAdjacentHTML('afterend', renderPicker(key));
 
-        // イベントを紐付け
-        const picker = card.nextElementSibling;
-        const sizeBox = picker.querySelector('#size-choices');
+        // イベント束縛
+        const picker   = card.nextElementSibling;
+        const sizeBox  = picker.querySelector('#size-choices');
         const qtyInput = picker.querySelector('#qty');
 
-        // チップ選択
+        // サイズ選択
         sizeBox.addEventListener('click',(e)=>{
           const chip = e.target.closest('.chip'); if(!chip) return;
           sizeBox.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-checked','false'));
@@ -209,7 +201,7 @@
         picker.querySelector('[data-action="dec"]').onclick = ()=> qtyInput.value = Math.max(1,(+qtyInput.value||1)-1);
 
         // 閉じる
-        picker.querySelector('#close-picker').onclick = ()=> { picker.remove(); openKey = null; };
+        picker.querySelector('#close-picker').onclick = ()=> { picker.remove(); };
 
         // Checkout
         picker.querySelector('#checkout').onclick = async ()=>{
