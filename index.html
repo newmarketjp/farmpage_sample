@@ -9,8 +9,6 @@
   <!-- Open Graph / Twitter -->
   <meta property="og:title" content="【商品名】| あなたのショップ名" />
   <meta property="og:description" content="【商品名】の公式商品ページ。特徴・仕様・レビュー・配送/返品ポリシーなど。" />
-
-
   <meta property="og:type" content="product" />
   <meta property="og:url" content="https://example.com/products/slug" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=Product+OG" />
@@ -82,3 +80,347 @@
     /* Accordions */
     details{border:1px solid var(--line);border-radius:12px;overflow:hidden}
     summary{padding:14px 16px;background:var(--muted);cursor:pointer}
+    details>div{padding:14px 16px;background:var(--panel)}
+
+    /* Related */
+    .rel-grid{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
+    @media(min-width:720px){.rel-grid{grid-template-columns:repeat(4,1fr)}}
+    .rel-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+    .rel-card .meta{padding:10px 12px}
+    .rating{display:flex;align-items:center;gap:6px;color:#ffd166}
+
+    footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
+  </style>
+
+  <!-- Product structured data (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "【商品名】",
+    "image": [
+      "https://via.placeholder.com/1200x1200.png?text=Main+Image",
+      "https://via.placeholder.com/600x600.png?text=Sub+1",
+      "https://via.placeholder.com/600x600.png?text=Sub+2"
+    ],
+    "description": "【ここに商品の概要説明】",
+    "sku": "SKU-12345",
+    "brand": {
+      "@type": "Brand",
+      "name": "あなたのブランド"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.6",
+      "reviewCount": "128"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": "https://example.com/products/slug",
+      "priceCurrency": "JPY",
+      "price": "7980",
+      "priceValidUntil": "2026-12-31",
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition",
+      "sku": "SKU-12345",
+      "seller": {"@type":"Organization","name":"あなたのショップ名"}
+    }
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">🛍️ あなたのショップ名</div>
+    </div>
+    <div class="container crumbs" aria-label="breadcrumb">
+      <a href="/">ホーム</a> / <a href="/collections">カテゴリー</a> / <span aria-current="page">【商品名】</span>
+    </div>
+  </header>
+
+  <main class="container grid" id="product-root">
+    <!-- Left: Gallery -->
+    <section class="card panel" aria-label="商品画像ギャラリー">
+      <div class="gallery">
+        <div class="thumbs" id="thumbs" role="tablist" aria-label="サムネイル">
+          <button class="thumb active" role="tab" aria-selected="true" aria-controls="img-0" data-src="https://via.placeholder.com/1000x1000.png?text=Image+1">
+            <img src="https://via.placeholder.com/180x180.png?text=1" alt="商品画像1のサムネイル">
+          </button>
+          <button class="thumb" role="tab" aria-selected="false" aria-controls="img-0" data-src="https://via.placeholder.com/1000x1000.png?text=Image+2">
+            <img src="https://via.placeholder.com/180x180.png?text=2" alt="商品画像2のサムネイル">
+          </button>
+          <button class="thumb" role="tab" aria-selected="false" aria-controls="img-0" data-src="https://via.placeholder.com/1000x1000.png?text=Image+3">
+            <img src="https://via.placeholder.com/180x180.png?text=3" alt="商品画像3のサムネイル">
+          </button>
+        </div>
+        <div class="stage">
+          <img id="hero" src="https://via.placeholder.com/1000x1000.png?text=Image+1" alt="【商品名】のメイン画像" loading="eager" width="1000" height="1000">
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Info -->
+    <section class="card panel" aria-label="商品情報">
+      <h1 class="h1">【商品名】</h1>
+      <div class="sub">型番: <span id="sku">SKU-12345</span> ・ ブランド: あなたのブランド</div>
+      <div class="badges">
+        <span class="badge" id="stock-badge">在庫あり</span>
+        <span class="badge">⭐ 4.6 (128件のレビュー)</span>
+        <span class="badge">送料無料</span>
+        <span class="badge">30日返品可</span>
+      </div>
+
+      <div class="price" aria-live="polite">
+        <div class="price-now"><span id="price">¥7,980</span><span style="font-size:14px;color:var(--sub)">（税込）</span></div>
+        <div class="price-old" id="price-old">¥9,800</div>
+        <span class="badge" style="background:rgba(61,220,151,.1);color:var(--accent);border-color:rgba(61,220,151,.3)" id="discount-badge">18%OFF</span>
+      </div>
+
+      <p id="excerpt" class="sub" style="line-height:1.8">
+        【商品の短い説明】高品質な素材と洗練されたデザイン。日常使いから特別なシーンまで活躍します。
+      </p>
+
+      <div class="options">
+        <div class="field" id="opt-color">
+          <label for="color">カラー</label>
+          <div class="choices" role="listbox" aria-label="カラーを選択">
+            <button class="chip" role="option" aria-checked="true" data-color="ブラック">ブラック</button>
+            <button class="chip" role="option" aria-checked="false" data-color="グレー">グレー</button>
+            <button class="chip" role="option" aria-checked="false" data-color="ホワイト">ホワイト</button>
+          </div>
+        </div>
+        <div class="field" id="opt-size">
+          <label for="size">サイズ</label>
+          <div class="choices" role="listbox" aria-label="サイズを選択">
+            <button class="chip" role="option" aria-checked="true" data-size="S">S</button>
+            <button class="chip" role="option" aria-checked="false" data-size="M">M</button>
+            <button class="chip" role="option" aria-checked="false" data-size="L">L</button>
+            <button class="chip" role="option" aria-checked="false" data-size="XL">XL</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>数量</label>
+          <div class="qty" aria-label="数量選択">
+            <button type="button" aria-label="減らす" data-action="dec">−</button>
+            <input type="number" id="qty" value="1" min="1" inputmode="numeric" aria-label="数量">
+            <button type="button" aria-label="増やす" data-action="inc">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <button class="btn primary" id="add-to-cart" aria-label="カートに入れる">🛒 カートに入れる</button>
+        <button class="btn secondary" id="buy-now" aria-label="今すぐ購入">⚡ 今すぐ購入</button>
+      </div>
+      <div class="notice" id="ship-note">今ご注文で <strong>2〜3営業日以内</strong> に出荷予定</div>
+
+      <div class="tabs" id="tabs">
+        <div role="tablist" aria-label="商品タブ" class="tab-list">
+          <button class="tab-btn" role="tab" aria-controls="tab-desc" aria-selected="true">商品説明</button>
+          <button class="tab-btn" role="tab" aria-controls="tab-spec" aria-selected="false">仕様</button>
+          <button class="tab-btn" role="tab" aria-controls="tab-review" aria-selected="false">レビュー</button>
+        </div>
+        <section id="tab-desc" class="tab-panel" role="tabpanel">
+          <p>【詳しい商品説明】素材、使い心地、ユースケース、特徴などを記載してください。</p>
+          <ul>
+            <li>ポイント1：軽量で丈夫</li>
+            <li>ポイント2：防水加工</li>
+            <li>ポイント3：一年間の製品保証</li>
+          </ul>
+        </section>
+        <section id="tab-spec" class="tab-panel" role="tabpanel" hidden>
+          <table style="width:100%;border-collapse:collapse">
+            <tbody>
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line);color:var(--sub)">素材</td><td style="padding:8px;border-bottom:1px solid var(--line)">ポリエステル 100%</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line);color:var(--sub)">重量</td><td style="padding:8px;border-bottom:1px solid var(--line)">約 450g</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid var(--line);color:var(--sub)">生産国</td><td style="padding:8px;border-bottom:1px solid var(--line)">日本</td></tr>
+            </tbody>
+          </table>
+        </section>
+        <section id="tab-review" class="tab-panel" role="tabpanel" hidden>
+          <div>
+            <p><strong>平均評価 4.6/5</strong>（128件）</p>
+            <article class="card panel" aria-label="レビュー1">
+              <header style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+                <div class="rating">★★★★★</div>
+                <div class="sub">2025-03-12 / 匿名</div>
+              </header>
+              <p>想像以上の品質でした。毎日使っています！</p>
+            </article>
+            <article class="card panel" aria-label="レビュー2">
+              <header style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+                <div class="rating">★★★★☆</div>
+                <div class="sub">2025-02-02 / M.S.</div>
+              </header>
+              <p>サイズは少し大きめ。次はワンサイズ下を選びます。</p>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <div style="display:grid;gap:12px;margin-top:20px">
+        <details>
+          <summary>配送について</summary>
+          <div>
+            <p>税込5,000円以上のご注文で送料無料。通常、2〜3営業日で出荷します。</p>
+          </div>
+        </details>
+        <details>
+          <summary>返品・交換</summary>
+          <div>
+            <p>未使用品に限り、商品到着後30日以内の返品・交換を受け付けます。</p>
+          </div>
+        </details>
+        <details>
+          <summary>よくある質問</summary>
+          <div>
+            <p>Q. ギフトラッピングはできますか？<br> A. はい、オプションで承ります。</p>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <section class="container" aria-label="関連商品">
+    <h2 style="font-size:20px;margin:10px 0 14px">関連商品</h2>
+    <div class="rel-grid">
+      <article class="rel-card">
+        <img src="https://via.placeholder.com/600x600.png?text=Rel+1" alt="関連商品1">
+        <div class="meta"><div>関連商品1</div><div class="sub">¥4,980</div></div>
+      </article>
+      <article class="rel-card">
+        <img src="https://via.placeholder.com/600x600.png?text=Rel+2" alt="関連商品2">
+        <div class="meta"><div>関連商品2</div><div class="sub">¥6,480</div></div>
+      </article>
+      <article class="rel-card">
+        <img src="https://via.placeholder.com/600x600.png?text=Rel+3" alt="関連商品3">
+        <div class="meta"><div>関連商品3</div><div class="sub">¥3,280</div></div>
+      </article>
+      <article class="rel-card">
+        <img src="https://via.placeholder.com/600x600.png?text=Rel+4" alt="関連商品4">
+        <div class="meta"><div>関連商品4</div><div class="sub">¥8,800</div></div>
+      </article>
+    </div>
+  </section>
+
+  <footer class="container">
+    <div>© <span id="year"></span> あなたのショップ名</div>
+  </footer>
+
+  <script>
+    // --- Gallery logic ---
+    const hero = document.getElementById('hero');
+    document.getElementById('thumbs').addEventListener('click', (e)=>{
+      const btn = e.target.closest('.thumb');
+      if(!btn) return;
+      document.querySelectorAll('.thumb').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      hero.src = btn.dataset.src;
+      document.querySelectorAll('.thumb').forEach(b=>b.setAttribute('aria-selected','false'));
+      btn.setAttribute('aria-selected','true');
+    });
+
+    // --- Quantity stepper ---
+    document.querySelectorAll('.qty button').forEach(btn=>btn.addEventListener('click',()=>{
+      const input = document.getElementById('qty');
+      const action = btn.dataset.action;
+      const val = parseInt(input.value||'1',10);
+      if(action==='inc') input.value = val+1; else input.value = Math.max(1,val-1);
+    }));
+
+    // --- Chips (options) ---
+    document.querySelectorAll('.choices').forEach(group=>{
+      group.addEventListener('click', (e)=>{
+        const chip = e.target.closest('.chip');
+        if(!chip) return;
+        group.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-checked','false'));
+        chip.setAttribute('aria-checked','true');
+        updateVariant();
+      });
+    });
+
+    // --- Variant/price demo logic ---
+    const variants = {
+      'ブラック|M': { price: 7980, compareAt: 9800, stock: 12, sku: 'SKU-BK-M' },
+      'ブラック|L': { price: 7980, compareAt: 9800, stock: 0, sku: 'SKU-BK-L' },
+      'グレー|M':   { price: 7480, compareAt: 0,    stock: 5,  sku: 'SKU-GY-M' },
+      'ホワイト|S': { price: 6980, compareAt: 0,    stock: 2,  sku: 'SKU-WH-S' }
+    };
+
+    function currentSelection(){
+      const color = document.querySelector('#opt-color .chip[aria-checked="true"]').dataset.color;
+      const size = document.querySelector('#opt-size .chip[aria-checked="true"]').dataset.size;
+      return {color,size,key: `${color}|${size}`};
+    }
+
+    function formatJPY(n){
+      return new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY'}).format(n);
+    }
+
+    function updateVariant(){
+      const sel = currentSelection();
+      const v = variants[sel.key];
+      const priceEl = document.getElementById('price');
+      const priceOldEl = document.getElementById('price-old');
+      const badge = document.getElementById('discount-badge');
+      const stockBadge = document.getElementById('stock-badge');
+      const skuEl = document.getElementById('sku');
+      const addBtn = document.getElementById('add-to-cart');
+
+      if(!v){
+        priceEl.textContent = '—';
+        priceOldEl.style.display='none';
+        badge.style.display='none';
+        stockBadge.textContent='在庫なし（選択不可）';
+        addBtn.disabled = true; addBtn.style.opacity=.5;
+        return;
+      }
+
+      priceEl.textContent = formatJPY(v.price);
+      if(v.compareAt && v.compareAt>v.price){
+        priceOldEl.textContent = formatJPY(v.compareAt);
+        priceOldEl.style.display='inline-block';
+        const off = Math.round((1 - v.price/v.compareAt)*100);
+        badge.textContent = off + '%OFF';
+        badge.style.display='inline-flex';
+      } else {
+        priceOldEl.style.display='none';
+        badge.style.display='none';
+      }
+
+      skuEl.textContent = v.sku;
+
+      if(v.stock>0){
+        stockBadge.textContent='在庫あり（残り' + v.stock + '）';
+        addBtn.disabled = false; addBtn.style.opacity=1;
+      } else {
+        stockBadge.textContent='在庫切れ';
+        addBtn.disabled = true; addBtn.style.opacity=.5;
+      }
+    }
+
+    updateVariant();
+
+    // --- Tabs ---
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn=>btn.addEventListener('click',()=>{
+      tabBtns.forEach(b=>b.setAttribute('aria-selected','false'));
+      btn.setAttribute('aria-selected','true');
+      document.querySelectorAll('.tab-panel').forEach(p=>p.hidden=true);
+      document.getElementById(btn.getAttribute('aria-controls')).hidden=false;
+    }));
+
+    // --- Buy actions (demo) ---
+    document.getElementById('add-to-cart').addEventListener('click',()=>{
+      const {color,size} = currentSelection();
+      alert(`カートに追加しました\n商品: 【商品名】\nカラー: ${color} / サイズ: ${size}\n数量: ${document.getElementById('qty').value}`);
+    });
+    document.getElementById('buy-now').addEventListener('click',()=>{
+      alert('チェックアウトへ進みます（デモ）');
+    });
+
+    // --- Footer year ---
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
