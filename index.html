@@ -29,7 +29,7 @@
       --brand:#0ea47a;      /* ブランド系アクセント */
       --accent:#10b981;     /* 強めの緑 */
       --warn:#f59e0b;       /* 注意 */
-      /* 追加：カード/パネル共通幅 */
+      /* カード/パネル共通幅 */
       --pane-width: 440px;
     }
     *{box-sizing:border-box}
@@ -46,8 +46,9 @@
     .h1{font-size:28px;font-weight:700;margin:0 0 8px}
     .sub{color:var(--sub)}
 
-    .grid{display:grid;gap:16px;grid-template-columns:repeat(2,1fr)}
-    @media(min-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+    /* ここを縦一列に変更 */
+    .grid{display:grid;gap:16px;grid-template-columns:1fr}
+    @media(min-width:720px){.grid{grid-template-columns:1fr}}
 
     .card{background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,1));border:1px solid var(--line);border-radius:16px;overflow:hidden}
     .panel{padding:20px 20px;background:var(--panel)}
@@ -58,10 +59,9 @@
       overflow:hidden;
       background:var(--panel);
       cursor:pointer;
-      /* 追加：カードの最大幅をパネルと統一 */
       width:100%;
       max-width:var(--pane-width);
-      justify-self:start; /* グリッドセル内で左寄せ */
+      justify-self:start; /* 縦一列でも左寄せのまま */
     }
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
@@ -87,7 +87,6 @@
       background:var(--panel);
       padding:16px;
       margin:12px 0;
-      /* 追加：パネルの幅もカードと統一 */
       width:100%;
       max-width:var(--pane-width);
       justify-self:start;
@@ -122,8 +121,7 @@
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
     <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → お届け先入力 → Stripe決済（カート無し）。</p>
 
-    <!-- 上段：芋（シルクスイート／べにはるか） -->
-    <!-- 下段：米（コシヒカリ／ふさおとめ） -->
+    <!-- 縦一列：芋→芋→米→米 -->
     <section class="grid" id="product-list">
       <!-- 芋A -->
       <article class="product-card" data-product="imoA">
