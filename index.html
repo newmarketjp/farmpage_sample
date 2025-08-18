@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | Newmarket happy grain</title>
-  <meta name="description" content="商品をクリック→サイズ→数量→住所入力→Stripe決済（カート無し）。" />
+  <meta name="description" content="商品をクリック→サイズ→Stripe決済（ペイメントリンク）。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | Newmarket happy grain" />
-  <meta property="og:description" content="商品をクリック→サイズ→数量→住所入力→Stripe決済（カート無し）。" />
+  <meta property="og:description" content="商品をクリック→サイズ→Stripe決済（ペイメントリンク）。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -17,23 +17,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+  <!-- Stripe Buy Button（Payment Links） -->
+  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+
   <style>
     :root{
-      --bg:#f6faf7;
-      --panel:#ffffff;
-      --muted:#f3f4f6;
-      --line:#e5e7eb;
-      --text:#111827;
-      --sub:#6b7280;
-      --brand:#0ea47a;
-      --accent:#10b981;
-      --warn:#f59e0b;
+      --bg:#f6faf7; --panel:#ffffff; --muted:#f3f4f6; --line:#e5e7eb;
+      --text:#111827; --sub:#6b7280; --brand:#0ea47a; --accent:#10b981; --warn:#f59e0b;
       --pane-width: 440px; /* カード/パネル共通の基準幅 */
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
-    a{color:inherit}
     img{max-width:100%;display:block}
+    a{color:inherit}
     .container{max-width:1200px;margin:auto;padding:24px}
     header{border-bottom:1px solid var(--line);background:rgba(255,255,255,0.7);backdrop-filter:saturate(120%) blur(6px);position:sticky;top:0;z-index:40}
     .topbar{display:flex;align-items:center;gap:16px;padding:12px 24px}
@@ -45,90 +41,42 @@
     .sub{color:var(--sub)}
 
     /* モバイル：縦一列 / デスクトップ：左カード + 右パネル */
-    .grid{
-      display:grid;
-      gap:16px;
-      grid-template-columns:1fr;
-      align-items:start;
-    }
-    @media (min-width: 960px){
-      .grid{ grid-template-columns: var(--pane-width) minmax(0,1fr); }
-    }
+    .grid{display:grid;gap:16px;grid-template-columns:1fr;align-items:start;}
+    @media (min-width:960px){ .grid{ grid-template-columns: var(--pane-width) minmax(0,1fr); } }
 
     .product-card{
-      border:1px solid var(--line);
-      border-radius:14px;
-      overflow:hidden;
-      background:var(--panel);
-      cursor:pointer;
-      width:100%;
-      max-width:var(--pane-width);
-      justify-self:start;
-      grid-column:1 / -1; /* 通常は行全幅（縦並び） */
+      border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);cursor:pointer;
+      width:100%;max-width:var(--pane-width);justify-self:start;grid-column:1 / -1;
     }
-    /* 開いたカードは左カラムに固定 & 縦にストレッチして右パネルと同じ高さに */
-    @media (min-width: 960px){
-      .product-card.open{
-        grid-column:1 / 2;
-        align-self:stretch;   /* ← これで高さが右パネルに揃う */
-      }
+    @media (min-width:960px){
+      .product-card.open{ grid-column:1 / 2; align-self:stretch; } /* 右パネルと高さを揃える */
     }
-
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
 
     .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;}
-    .btn.primary{background:linear-gradient(180deg,var(--brand),#099268);color:#fff;border-color:transparent}
     .btn.secondary{background:var(--muted);color:var(--text)}
     .choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .chip{padding:10px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#f7f7f9;color:var(--text)}
     .chip[aria-checked="true"],.chip:hover{outline:2px solid var(--brand)}
-    .qty{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:8px}
-    .qty input{width:72px;text-align:center;background:transparent;color:var(--text);border:none;outline:none}
-    .qty button{width:38px;background:var(--muted);color:var(--text);border:none;cursor:pointer}
-    .cta{display:flex;gap:12px;margin-top:14px}
     .notice{font-size:12px;color:var(--sub);margin-top:8px}
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
     /* 右側の購入パネル */
     .picker{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:var(--panel);
-      padding:16px;
-      margin:12px 0;
-      width:100%;
-      max-width:var(--pane-width);
-      justify-self:start;
-      grid-column:1 / -1; /* モバイル時は下に全幅 */
-      align-self:start;
+      border:1px solid var(--line);border-radius:14px;background:var(--panel);
+      padding:16px;margin:12px 0;width:100%;max-width:var(--pane-width);justify-self:start;
+      grid-column:1 / -1;align-self:start;
     }
-    @media (min-width: 960px){
-      .picker{ grid-column:2 / 3; }
-    }
-
+    @media (min-width:960px){ .picker{ grid-column:2 / 3; } }
     .picker h2{margin:0}
-    .form-grid{display:grid;gap:10px;margin-top:12px}
-    @media(min-width:720px){
-      .form-grid{grid-template-columns:1fr 1fr}
-      .form-grid .full{grid-column:1/-1}
-    }
-    .input, .select{
-      width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);
-    }
-    .input:focus, .select:focus{outline:2px solid var(--brand);border-color:transparent}
-    .help{font-size:12px;color:var(--sub)}
+    .buy-slot{margin-top:14px}
   </style>
-
-  <!-- Stripe.js -->
-  <script src="https://js.stripe.com/v3"></script>
 </head>
 <body>
   <header>
-    <div class="topbar">
-      <div class="brand">Newmarket happy grain</div>
-    </div>
+    <div class="topbar"><div class="brand">Newmarket happy grain</div></div>
     <div class="container crumbs" aria-label="breadcrumb">
       <a href="./">ホーム</a> / <span aria-current="page">商品一覧</span>
     </div>
@@ -136,7 +84,7 @@
 
   <main class="container">
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
-    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → お届け先入力 → Stripe決済（カート無し）。</p>
+    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → Stripe決済（住所・数量は決済ページで入力）。</p>
 
     <section class="grid" id="product-list">
       <article class="product-card" data-product="imoA">
@@ -164,152 +112,110 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
-    const stripe = Stripe('pk_test_CHANGE_ME');
 
+    // UI用サイズ定義（Price IDは不要。ラベルだけ使う）
     const PRICE_MAP = {
-      komeA: { title: 'コシヒカリ', sizes: [{ label:'5kg', priceId:'price_xxx_komeA_5kg' },{ label:'10kg', priceId:'price_xxx_komeA_10kg' }] },
-      komeB: { title: 'ふさおとめ', sizes: [{ label:'5kg', priceId:'price_xxx_komeB_5kg' },{ label:'10kg', priceId:'price_xxx_komeB_10kg' }] },
-      imoA:  { title: 'シルクスイート', sizes: [{ label:'1kg', priceId:'price_xxx_imoA_1kg' },{ label:'3kg', priceId:'price_xxx_imoA_3kg' }] },
-      imoB:  { title: 'べにはるか', sizes: [{ label:'1kg', priceId:'price_xxx_imoB_1kg' },{ label:'3kg', priceId:'price_xxx_imoB_3kg' }] }
+      imoA: { title:'シルクスイート', sizes:[{label:'1kg'},{label:'3kg'}] },
+      imoB: { title:'べにはるか',     sizes:[{label:'1kg'},{label:'3kg'}] },
+      komeA:{ title:'コシヒカリ',     sizes:[{label:'5kg'},{label:'10kg'}] },
+      komeB:{ title:'ふさおとめ',     sizes:[{label:'5kg'},{label:'10kg'}] }
     };
-    const PREFS = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
+
+    // ★ Buy Button のID対応表（サイズごとに設定）
+    //   例として「シルクスイート 1kg」にだけ、いただいたIDを割り当てています。
+    //   他サイズ/商品も Stripe ダッシュボードで作成した buy_button_id を追記してください。
+    const BUY_MAP = {
+      'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu',
+      // 'imoA:3kg': 'buy_btn_xxx_imoA_3kg',
+      // 'imoB:1kg': 'buy_btn_xxx_imoB_1kg',
+      // 'imoB:3kg': 'buy_btn_xxx_imoB_3kg',
+      // 'komeA:5kg': 'buy_btn_xxx_komeA_5kg',
+      // 'komeA:10kg': 'buy_btn_xxx_komeA_10kg',
+      // 'komeB:5kg': 'buy_btn_xxx_komeB_5kg',
+      // 'komeB:10kg': 'buy_btn_xxx_komeB_10kg',
+    };
+
+    const PUBLISHABLE_KEY = 'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y';
 
     function renderPicker(key){
       const meta = PRICE_MAP[key];
-      const sizeChips = meta.sizes.map((s,i)=>
-        `<button class="chip size-chip" type="button" role="option"
-                 aria-checked="${i===0}" data-price="${s.priceId}" data-label="${s.label}">
-           ${s.label}
-         </button>`).join('');
-      const prefOpts = PREFS.map(p=>`<option value="${p}">${p}</option>`).join('');
+      const sizeChips = meta.sizes.map((s,i)=>`
+        <button class="chip size-chip" type="button" role="option"
+                aria-checked="${i===0}" data-label="${s.label}">
+          ${s.label}
+        </button>`).join('');
+
       return `
         <div class="picker" data-open-for="${key}">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
             <h2 class="h1" style="font-size:20px;margin:0">購入：${meta.title}</h2>
             <button class="btn secondary close-picker">閉じる</button>
           </div>
+
           <div style="margin-top:8px">
             <label class="sub">サイズを選択</label>
             <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
+            <div class="notice">数量・住所は次のStripe決済ページで入力できます。</div>
           </div>
-          <div style="margin-top:12px">
-            <label class="sub">数量を選択</label>
-            <div class="qty" aria-label="数量">
-              <button type="button" class="qty-dec" aria-label="減らす">−</button>
-              <input type="number" class="qty-input" value="1" min="1" inputmode="numeric" pattern="[0-9]*" aria-label="数量">
-              <button type="button" class="qty-inc" aria-label="増やす">＋</button>
-            </div>
-            <div class="help">※ 1以上の半角数字のみ</div>
-          </div>
-          <div class="form-grid">
-            <div class="full">
-              <label class="sub" for="">氏名</label>
-              <input class="input ship-name" type="text" placeholder="山田 太郎" autocomplete="name" required>
-            </div>
-            <div>
-              <label class="sub" for="">都道府県</label>
-              <select class="select ship-pref" autocomplete="address-level1" required>
-                <option value="" selected disabled>選択してください</option>
-                ${prefOpts}
-              </select>
-            </div>
-            <div>
-              <label class="sub" for="">住所1（市区町村・番地）</label>
-              <input class="input ship-addr1" type="text" placeholder="新宿区西新宿2-8-1" autocomplete="address-line1" required>
-            </div>
-            <div class="full">
-              <label class="sub" for="">住所2（建物名・部屋番号 任意）</label>
-              <input class="input ship-addr2" type="text" placeholder="〇〇マンション101号室" autocomplete="address-line2">
-            </div>
-          </div>
-          <div class="cta">
-            <button class="btn primary do-checkout">Stripeで購入</button>
-          </div>
-          <div class="notice">テストカード: 4242 4242 4242 4242 / 任意の期限・CVC</div>
+
+          <div class="buy-slot" aria-live="polite"></div>
         </div>`;
     }
 
-    function sanitizeQty(input){
-      const val = Math.max(1, parseInt(String(input.value).replace(/[^0-9]/g,''),10) || 1);
-      input.value = val;
-      return val;
+    // 選択サイズに応じて Buy Button を差し替え
+    function mountBuyButton(picker, productKey){
+      const chosen = picker.querySelector('.size-chip[aria-checked="true"]');
+      const label  = chosen?.dataset.label;
+      const mapKey = `${productKey}:${label}`;
+      const buyId  = BUY_MAP[mapKey];
+      const slot   = picker.querySelector('.buy-slot');
+      if(!slot) return;
+
+      if(buyId){
+        slot.innerHTML = `
+          <stripe-buy-button
+            buy-button-id="${buyId}"
+            publishable-key="${PUBLISHABLE_KEY}">
+          </stripe-buy-button>`;
+      }else{
+        slot.innerHTML = `<div class="notice">このサイズのペイメントリンクは未設定です。Stripeでリンク作成後、\`BUY_MAP['${mapKey}']\` にIDを追記してください。</div>`;
+      }
     }
 
-    // クリックで右パネルを出し、左カードに.openを付与（高さを右に合わせる）
+    // クリック → 右パネル表示（同時に他の開きを閉じる）
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
         const meta = PRICE_MAP[key];
-        if(!meta || !meta.sizes || meta.sizes.length===0){
-          alert('商品またはサイズ定義がありません: ' + key); return;
-        }
+        if(!meta || !meta.sizes?.length){ alert('サイズ定義がありません: ' + key); return; }
 
-        // 一旦リセット
+        // 既存のパネルと.open状態をリセット（常に1つだけ開く）
         document.querySelectorAll('.picker').forEach(p=>p.remove());
         document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
 
-        // 左カードを“開いた”状態に
+        // このカードを“開いた”状態へ
         card.classList.add('open');
 
-        // 右パネルを追加
+        // カード直後にパネルを挿入
         card.insertAdjacentHTML('afterend', renderPicker(key));
 
-        const picker    = card.nextElementSibling;
-        const sizeBox   = picker.querySelector('.size-choices');
-        const qtyInput  = picker.querySelector('.qty-input');
-        const decBtn    = picker.querySelector('.qty-dec');
-        const incBtn    = picker.querySelector('.qty-inc');
-        const closeBtn  = picker.querySelector('.close-picker');
+        const picker  = card.nextElementSibling;
+        const sizeBox = picker.querySelector('.size-choices');
+        const closeBtn= picker.querySelector('.close-picker');
 
+        // 初回描画
+        mountBuyButton(picker, key);
+
+        // サイズ変更時も差し替え
         sizeBox.addEventListener('click',(e)=>{
           const chip = e.target.closest('.size-chip'); if(!chip) return;
           sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
           chip.setAttribute('aria-checked','true');
+          mountBuyButton(picker, key);
         });
-        incBtn.onclick = ()=>{ qtyInput.value = sanitizeQty({value:(+qtyInput.value||1)+1}); };
-        decBtn.onclick = ()=>{ qtyInput.value = Math.max(1, sanitizeQty(qtyInput)-1); };
-        qtyInput.addEventListener('input', ()=> sanitizeQty(qtyInput));
-        qtyInput.addEventListener('blur',  ()=> sanitizeQty(qtyInput));
-        qtyInput.addEventListener('keydown', (e)=>{ if(e.key==='e'||e.key==='E'||e.key==='-'||e.key==='+') e.preventDefault(); });
 
         // 閉じる
-        closeBtn.onclick = ()=> {
-          picker.remove();
-          card.classList.remove('open');
-        };
-
-        // Checkout
-        picker.querySelector('.do-checkout').onclick = async ()=>{
-          const chosen = sizeBox.querySelector('.size-chip[aria-checked="true"]');
-          if(!chosen){ alert('サイズを選択してください'); return; }
-
-          const name  = picker.querySelector('.ship-name').value.trim();
-          const pref  = picker.querySelector('.ship-pref').value;
-          const addr1 = picker.querySelector('.ship-addr1').value.trim();
-          const addr2 = picker.querySelector('.ship-addr2').value.trim();
-          if(!name || !pref || !addr1){
-            alert('氏名・都道府県・住所1は必須です'); return;
-          }
-          const priceId = chosen.dataset.price;
-          const qty     = sanitizeQty(qtyInput);
-
-          try{
-            const res = await fetch('https://YOUR_SERVER/create-checkout-session', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({
-                priceId,
-                quantity: qty,
-                metadata: { product: key, size: chosen.dataset.label, name, prefecture: pref, address1: addr1, address2: addr2 }
-              })
-            });
-            const data = await res.json();
-            if(!res.ok) throw new Error(data.error || 'エラー');
-            await stripe.redirectToCheckout({ sessionId: data.id });
-          }catch(err){
-            alert(err.message || '決済開始に失敗しました（エンドポイント未設定の可能性）');
-          }
-        };
+        closeBtn.onclick = ()=>{ picker.remove(); card.classList.remove('open'); };
       });
     });
   </script>
