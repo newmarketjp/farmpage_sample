@@ -121,16 +121,18 @@
     };
 
     /* ===== 1) Payment Links（URL）— クリック即遷移用 =====
-       Stripeダッシュボードの「リンクをコピー」で得られる
-       https://buy.stripe.com/... 形式のURLを入れてください。
-       用意できたものから埋めればOK（未設定はフォールバックへ）。 */
+       いただいたURLを、該当商品の両サイズに割り当てています。
+       （サイズ別URLがある場合は個別に上書きしてください） */
     const PAYMENT_LINKS = {
-      // 例:
-      // 'imoA:1kg': 'https://buy.stripe.com/test_XXXXXXXX',
-      // 'imoA:3kg': 'https://buy.stripe.com/test_YYYYYYYY',
-      // 'imoB:1kg': 'https://buy.stripe.com/test_ZZZZZZZZ',
-      // 'komeA:5kg': 'https://buy.stripe.com/test_AAAAAAAA',
-      // 'komeB:5kg': 'https://buy.stripe.com/test_BBBBBBBB',
+      // べにはるか
+      'imoB:1kg': 'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01',
+      'imoB:3kg': 'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01',
+      // コシヒカリ
+      'komeA:5kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
+      'komeA:10kg':'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
+      // ふさおとめ
+      'komeB:5kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
+      'komeB:10kg':'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
     };
 
     /* ===== 2) Buy Button（ID）— URL未設定時のフォールバック ===== */
@@ -173,7 +175,6 @@
       const mapKey = `${productKey}:${label}`;
       const url = PAYMENT_LINKS[mapKey];
       if (url) {
-        // 同じタブで遷移（新規タブにしたい場合は window.open(url, '_blank', 'noopener')）
         location.href = url + (url.includes('?') ? '&' : '?') + 'locale=ja';
         return true;
       }
@@ -216,15 +217,11 @@
         const sizeBox = picker.querySelector('.size-choices');
         const closeBtn= picker.querySelector('.close-picker');
 
-        // 初期選択サイズ（1つ目）
         const initialLabel = meta.sizes[0].label;
-
-        // 初回：URLがあれば即遷移。なければボタン表示。
         if (!goToPaymentLinkIfAvailable(key, initialLabel)) {
           mountBuyButton(picker, key, initialLabel);
         }
 
-        // サイズクリック時：まずURL遷移を試み、なければボタンに差し替え
         sizeBox.addEventListener('click',(e)=>{
           const chip = e.target.closest('.size-chip'); if(!chip) return;
           sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
