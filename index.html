@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | Newmarket happy grain</title>
-  <meta name="description" content="商品をクリック→サイズ→Stripe決済（ペイメントリンク）。" />
+  <meta name="description" content="商品をクリック → サイズ選択 → Stripe決済（Payment Links）。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | Newmarket happy grain" />
-  <meta property="og:description" content="商品をクリック→サイズ→Stripe決済（ペイメントリンク）。" />
+  <meta property="og:description" content="商品をクリック → サイズ選択 → Stripe決済（Payment Links）。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -24,12 +24,12 @@
     :root{
       --bg:#f6faf7; --panel:#ffffff; --muted:#f3f4f6; --line:#e5e7eb;
       --text:#111827; --sub:#6b7280; --brand:#0ea47a; --accent:#10b981; --warn:#f59e0b;
-      --pane-width: 440px; /* カード/パネル共通の基準幅 */
+      --pane-width: 440px;
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
-    img{max-width:100%;display:block}
     a{color:inherit}
+    img{max-width:100%;display:block}
     .container{max-width:1200px;margin:auto;padding:24px}
     header{border-bottom:1px solid var(--line);background:rgba(255,255,255,0.7);backdrop-filter:saturate(120%) blur(6px);position:sticky;top:0;z-index:40}
     .topbar{display:flex;align-items:center;gap:16px;padding:12px 24px}
@@ -84,7 +84,7 @@
 
   <main class="container">
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
-    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → Stripe決済（住所・数量は決済ページで入力）。</p>
+    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → Stripe決済（Payment Links）。</p>
 
     <section class="grid" id="product-list">
       <article class="product-card" data-product="imoA">
@@ -113,7 +113,7 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // UI用サイズ定義（Price IDは不要。ラベルだけ使う）
+    // UI用サイズ定義（Price IDは不要。ラベルだけ）
     const PRICE_MAP = {
       imoA: { title:'シルクスイート', sizes:[{label:'1kg'},{label:'3kg'}] },
       imoB: { title:'べにはるか',     sizes:[{label:'1kg'},{label:'3kg'}] },
@@ -122,8 +122,7 @@
     };
 
     // ★ Buy Button のID対応表（サイズごとに設定）
-    //   例として「シルクスイート 1kg」にだけ、いただいたIDを割り当てています。
-    //   他サイズ/商品も Stripe ダッシュボードで作成した buy_button_id を追記してください。
+    // いただいたIDを「シルクスイート 1kg」に割当て済み。残りは用意でき次第追記してください。
     const BUY_MAP = {
       'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu',
       // 'imoA:3kg': 'buy_btn_xxx_imoA_3kg',
@@ -155,7 +154,7 @@
           <div style="margin-top:8px">
             <label class="sub">サイズを選択</label>
             <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
-            <div class="notice">数量・住所は次のStripe決済ページで入力できます。</div>
+            <div class="notice">数量・住所はStripeの決済ページで入力します。</div>
           </div>
 
           <div class="buy-slot" aria-live="polite"></div>
@@ -171,14 +170,16 @@
       const slot   = picker.querySelector('.buy-slot');
       if(!slot) return;
 
+      slot.innerHTML = ''; // クリア
+
       if(buyId){
-        slot.innerHTML = `
-          <stripe-buy-button
-            buy-button-id="${buyId}"
-            publishable-key="${PUBLISHABLE_KEY}">
-          </stripe-buy-button>`;
+        // 動的にカスタム要素を生成してマウント
+        const btn = document.createElement('stripe-buy-button');
+        btn.setAttribute('buy-button-id', buyId);
+        btn.setAttribute('publishable-key', PUBLISHABLE_KEY);
+        slot.appendChild(btn);
       }else{
-        slot.innerHTML = `<div class="notice">このサイズのペイメントリンクは未設定です。Stripeでリンク作成後、\`BUY_MAP['${mapKey}']\` にIDを追記してください。</div>`;
+        slot.innerHTML = `<div class="notice">このサイズのペイメントリンクは未設定です。StripeでBuy Buttonを作成後、BUY_MAP['${mapKey}'] にIDを追記してください。</div>`;
       }
     }
 
