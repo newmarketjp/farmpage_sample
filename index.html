@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | Newmarket happy grain</title>
-  <meta name="description" content="商品をクリック → サイズ選択 → Stripe決済（Payment Links）。" />
+  <meta name="description" content="商品をクリック → サイズ選択 → Stripe Buy Buttonで決済。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | Newmarket happy grain" />
-  <meta property="og:description" content="商品をクリック → サイズ選択 → Stripe決済（Payment Links）。" />
+  <meta property="og:description" content="商品をクリック → サイズ選択 → Stripe Buy Buttonで決済。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -17,14 +17,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Stripe Buy Button（Payment Links）※一度だけ読み込み -->
+  <!-- Stripe Buy Button（1回だけ読み込み） -->
   <script async src="https://js.stripe.com/v3/buy-button.js"></script>
 
   <style>
     :root{
       --bg:#f6faf7; --panel:#ffffff; --muted:#f3f4f6; --line:#e5e7eb;
       --text:#111827; --sub:#6b7280; --brand:#0ea47a; --accent:#10b981; --warn:#f59e0b;
-      --pane-width: 440px;
+      --pane-width: 440px; /* 左カード幅と右パネル幅を揃える */
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
@@ -40,7 +40,7 @@
     .h1{font-size:28px;font-weight:700;margin:0 0 8px}
     .sub{color:var(--sub)}
 
-    /* モバイル：縦一列 / デスクトップ：左カード + 右パネル */
+    /* レイアウト：左(カード) + 右(パネル) */
     .grid{display:grid;gap:16px;grid-template-columns:1fr;align-items:start;}
     @media (min-width:960px){ .grid{ grid-template-columns: var(--pane-width) minmax(0,1fr); } }
 
@@ -49,7 +49,7 @@
       width:100%;max-width:var(--pane-width);justify-self:start;grid-column:1 / -1;
     }
     @media (min-width:960px){
-      .product-card.open{ grid-column:1 / 2; align-self:stretch; } /* 右パネルと高さを揃える */
+      .product-card.open{ grid-column:1 / 2; align-self:stretch; } /* 右パネルとバランスを揃える */
     }
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
@@ -63,6 +63,7 @@
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
+    /* 右側の購入パネル */
     .picker{
       border:1px solid var(--line);border-radius:14px;background:var(--panel);
       padding:16px;margin:12px 0;width:100%;max-width:var(--pane-width);justify-self:start;
@@ -83,7 +84,7 @@
 
   <main class="container">
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
-    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズチップを押すと Stripe 決済ページへ遷移（未設定なら右にボタン表示）。</p>
+    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 右側に Stripe（Buy Button）が表示されます。</p>
 
     <section class="grid" id="product-list">
       <article class="product-card" data-product="imoA">
@@ -112,7 +113,7 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // UI用サイズ定義（仮：芋=1kg/3kg、米=5kg/10kg）
+    // サイズ定義（表示用ラベル）
     const PRICE_MAP = {
       imoA: { title:'シルクスイート', sizes:[{label:'1kg'},{label:'3kg'}] },
       imoB: { title:'べにはるか',     sizes:[{label:'1kg'},{label:'3kg'}] },
@@ -120,29 +121,23 @@
       komeB:{ title:'ふさおとめ',     sizes:[{label:'5kg'},{label:'10kg'}] }
     };
 
-    /* ===== 1) Payment Links（URL）— クリック即遷移用 =====
-       いただいたURLを、該当商品の両サイズに割り当てています。
-       （サイズ別URLがある場合は個別に上書きしてください） */
-    const PAYMENT_LINKS = {
-      // べにはるか
-      'imoB:1kg': 'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01',
-      'imoB:3kg': 'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01',
-      // コシヒカリ
-      'komeA:5kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
-      'komeA:10kg':'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
-      // ふさおとめ
-      'komeB:5kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
-      'komeB:10kg':'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
-    };
-
-    /* ===== 2) Buy Button（ID）— URL未設定時のフォールバック ===== */
+    // Buy Button ID（サイズごとに割当）
+    // ※いただいた4つを反映。未設定サイズはコメントの行に追記してください。
     const BUY_MAP = {
       'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', // シルクスイート 1kg
-      'imoB:1kg': 'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', // べにはるか   1kg
-      'komeA:5kg': 'buy_btn_1RxLIIEOlIsLAXPbpkLNt0Uw', // コシヒカリ   5kg
-      'komeB:5kg': 'buy_btn_1RxLH6EOlIsLAXPbJLQvuP1O', // ふさおとめ   5kg
-      // 必要に応じて追記…
+      // 'imoA:3kg': 'buy_btn_xxx_imoA_3kg',
+
+      'imoB:1kg': 'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', // べにはるか 1kg
+      // 'imoB:3kg': 'buy_btn_xxx_imoB_3kg',
+
+      'komeA:5kg': 'buy_btn_1RxLIIEOlIsLAXPbpkLNt0Uw', // コシヒカリ 5kg
+      // 'komeA:10kg': 'buy_btn_xxx_komeA_10kg',
+
+      'komeB:5kg': 'buy_btn_1RxLH6EOlIsLAXPbJLQvuP1O', // ふさおとめ 5kg
+      // 'komeB:10kg': 'buy_btn_xxx_komeB_10kg',
     };
+
+    // 公開鍵（Buy Button属性で自動使用されます。Stripeが内部で検証）
     const PUBLISHABLE_KEY = 'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y';
 
     function renderPicker(key){
@@ -161,27 +156,15 @@
           </div>
 
           <div style="margin-top:8px">
-            <label class="sub">サイズを選択（クリックで決済ページへ）</label>
+            <label class="sub">サイズを選択（右に決済カードを表示）</label>
             <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
-            <div class="notice">※ Payment Links のURLが未設定のサイズは、右側にStripeの「Buy Button」を表示します。</div>
           </div>
 
           <div class="buy-slot" aria-live="polite"></div>
         </div>`;
     }
 
-    // URLがあれば即遷移、なければfalse
-    function goToPaymentLinkIfAvailable(productKey, label){
-      const mapKey = `${productKey}:${label}`;
-      const url = PAYMENT_LINKS[mapKey];
-      if (url) {
-        location.href = url + (url.includes('?') ? '&' : '?') + 'locale=ja';
-        return true;
-      }
-      return false;
-    }
-
-    // フォールバック：Buy Button を表示
+    // 選択サイズに応じて Buy Button を差し替え（遷移はせず、その場に表示）
     function mountBuyButton(picker, productKey, label){
       const mapKey = `${productKey}:${label}`;
       const buyId  = BUY_MAP[mapKey];
@@ -196,7 +179,7 @@
         // btn.setAttribute('locale', 'ja'); // 日本語固定したい場合
         slot.appendChild(btn);
       }else{
-        slot.innerHTML = `<div class="notice">このサイズのリンク/ボタンは未設定です。</div>`;
+        slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。Stripeで作成後、<code>BUY_MAP['${mapKey}']</code> にIDを追記してください。</div>`;
       }
     }
 
@@ -207,9 +190,11 @@
         const meta = PRICE_MAP[key];
         if(!meta || !meta.sizes?.length){ alert('サイズ定義がありません: ' + key); return; }
 
+        // 既存の開きを閉じる
         document.querySelectorAll('.picker').forEach(p=>p.remove());
         document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
 
+        // 開く
         card.classList.add('open');
         card.insertAdjacentHTML('afterend', renderPicker(key));
 
@@ -217,22 +202,19 @@
         const sizeBox = picker.querySelector('.size-choices');
         const closeBtn= picker.querySelector('.close-picker');
 
+        // 初回：1つ目のサイズで表示
         const initialLabel = meta.sizes[0].label;
-        if (!goToPaymentLinkIfAvailable(key, initialLabel)) {
-          mountBuyButton(picker, key, initialLabel);
-        }
+        mountBuyButton(picker, key, initialLabel);
 
+        // サイズ変更時：その場で差し替え
         sizeBox.addEventListener('click',(e)=>{
           const chip = e.target.closest('.size-chip'); if(!chip) return;
           sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
           chip.setAttribute('aria-checked','true');
-          const label = chip.dataset.label;
-
-          if (!goToPaymentLinkIfAvailable(key, label)) {
-            mountBuyButton(picker, key, label);
-          }
+          mountBuyButton(picker, key, chip.dataset.label);
         });
 
+        // 閉じる
         closeBtn.onclick = ()=>{ picker.remove(); card.classList.remove('open'); };
       });
     });
