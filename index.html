@@ -46,9 +46,17 @@
     .h1{font-size:28px;font-weight:700;margin:0 0 8px}
     .sub{color:var(--sub)}
 
-    /* ここを縦一列に変更 */
-    .grid{display:grid;gap:16px;grid-template-columns:1fr}
-    @media(min-width:720px){.grid{grid-template-columns:1fr}}
+    /* 縦一列（モバイル/タブレット） */
+    .grid{
+      display:grid;
+      gap:16px;
+      grid-template-columns:1fr;
+      align-items:start;
+    }
+    /* デスクトップで「左：カード幅 / 右：パネル」2カラムにし、開いた行だけ横並びにする */
+    @media (min-width: 960px){
+      .grid{ grid-template-columns: var(--pane-width) minmax(0,1fr); }
+    }
 
     .card{background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,1));border:1px solid var(--line);border-radius:16px;overflow:hidden}
     .panel{padding:20px 20px;background:var(--panel)}
@@ -61,8 +69,13 @@
       cursor:pointer;
       width:100%;
       max-width:var(--pane-width);
-      justify-self:start; /* 縦一列でも左寄せのまま */
+      justify-self:start;
+      grid-column:1 / -1;  /* 通常は縦一列（行全幅） */
     }
+    @media (min-width: 960px){
+      .product-card.open{ grid-column:1 / 2; } /* 開いたカードは左カラムに固定 */
+    }
+
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
 
@@ -80,7 +93,7 @@
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
-    /* 展開パネル */
+    /* 購入パネル */
     .picker{
       border:1px solid var(--line);
       border-radius:14px;
@@ -90,6 +103,11 @@
       width:100%;
       max-width:var(--pane-width);
       justify-self:start;
+      grid-column:1 / -1;   /* モバイルでは下に表示（行全幅） */
+      align-self:start;
+    }
+    @media (min-width: 960px){
+      .picker{ grid-column:2 / 3; }  /* デスクトップでは右カラムに表示 */
     }
     .picker h2{margin:0}
     .form-grid{display:grid;gap:10px;margin-top:12px}
@@ -121,7 +139,7 @@
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
     <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → お届け先入力 → Stripe決済（カート無し）。</p>
 
-    <!-- 縦一列：芋→芋→米→米 -->
+    <!-- 縦一列（開いた行だけデスクトップで右にパネル） -->
     <section class="grid" id="product-list">
       <!-- 芋A -->
       <article class="product-card" data-product="imoA">
@@ -145,7 +163,7 @@
       </article>
     </section>
 
-    <!-- パネルはJSで商品カード直後に差し込み -->
+    <!-- パネルはJSで商品カード直後に差し込み（右カラムに出る） -->
   </main>
 
   <footer class="container">
@@ -255,7 +273,7 @@
       return val;
     }
 
-    // 商品クリック → カード直下にパネルを挿入
+    // 商品クリック → デスクトップでは右パネル、モバイルでは下パネル
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
@@ -264,10 +282,14 @@
           alert('商品またはサイズ定義がありません: ' + key); return;
         }
 
-        // 既存のパネルをすべて削除（常に1つだけ開く）
+        // 既存のパネルと.open状態をリセット（常に1つだけ開く）
         document.querySelectorAll('.picker').forEach(p=>p.remove());
+        document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
 
-        // カード直後にパネルを挿入
+        // このカードを“開いた”状態へ（CSSで左カラムに固定）
+        card.classList.add('open');
+
+        // カード直後にパネルを挿入（CSSで右カラムに配置）
         card.insertAdjacentHTML('afterend', renderPicker(key));
 
         // 要素参照（クラスでスコープ）
@@ -292,8 +314,11 @@
         qtyInput.addEventListener('blur',  ()=> sanitizeQty(qtyInput));
         qtyInput.addEventListener('keydown', (e)=>{ if(e.key==='e'||e.key==='E'||e.key==='-'||e.key==='+') e.preventDefault(); });
 
-        // 閉じる
-        closeBtn.onclick = ()=> picker.remove();
+        // 閉じる（.open も解除）
+        closeBtn.onclick = ()=> {
+          picker.remove();
+          card.classList.remove('open');
+        };
 
         // Checkout
         picker.querySelector('.do-checkout').onclick = async ()=>{
