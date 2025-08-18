@@ -17,14 +17,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Stripe Buy Button（Payment Links） -->
+  <!-- Stripe Buy Button（Payment Links）※重複読み込みは1つでOK -->
   <script async src="https://js.stripe.com/v3/buy-button.js"></script>
 
   <style>
     :root{
       --bg:#f6faf7; --panel:#ffffff; --muted:#f3f4f6; --line:#e5e7eb;
       --text:#111827; --sub:#6b7280; --brand:#0ea47a; --accent:#10b981; --warn:#f59e0b;
-      --pane-width: 440px; /* カード/パネルの基準幅 */
+      --pane-width: 440px;
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
@@ -49,7 +49,7 @@
       width:100%;max-width:var(--pane-width);justify-self:start;grid-column:1 / -1;
     }
     @media (min-width:960px){
-      .product-card.open{ grid-column:1 / 2; align-self:stretch; } /* 右パネルと高さを揃える */
+      .product-card.open{ grid-column:1 / 2; align-self:stretch; }
     }
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
@@ -63,7 +63,6 @@
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
-    /* 右側の購入パネル */
     .picker{
       border:1px solid var(--line);border-radius:14px;background:var(--panel);
       padding:16px;margin:12px 0;width:100%;max-width:var(--pane-width);justify-self:start;
@@ -113,7 +112,7 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // UI用サイズ定義（Price IDは不要。ラベルだけ）
+    // UI用サイズ定義（仮：芋=1kg/3kg、米=5kg/10kg）
     const PRICE_MAP = {
       imoA: { title:'シルクスイート', sizes:[{label:'1kg'},{label:'3kg'}] },
       imoB: { title:'べにはるか',     sizes:[{label:'1kg'},{label:'3kg'}] },
@@ -121,20 +120,20 @@
       komeB:{ title:'ふさおとめ',     sizes:[{label:'5kg'},{label:'10kg'}] }
     };
 
-    // ★ Buy Button のID対応表（サイズごとに設定）
-    // いただいたIDを「シルクスイート 1kg」に割当て済み。残りは用意でき次第追記してください。
+    // ★ Buy Button のID対応表（いただいた4つを仮割当）
+    // もし対応が違っていたら、値だけ入れ替えてください。
     const BUY_MAP = {
-      'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu',
-      // 'imoA:3kg': 'buy_btn_xxx_imoA_3kg',
-      // 'imoB:1kg': 'buy_btn_xxx_imoB_1kg',
-      // 'imoB:3kg': 'buy_btn_xxx_imoB_3kg',
-      // 'komeA:5kg': 'buy_btn_xxx_komeA_5kg',
-      // 'komeA:10kg': 'buy_btn_xxx_komeA_10kg',
-      // 'komeB:5kg': 'buy_btn_xxx_komeB_5kg',
-      // 'komeB:10kg': 'buy_btn_xxx_komeB_10kg',
+      'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', // シルクスイート 1kg
+      'imoB:1kg': 'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', // べにはるか   1kg
+      'komeA:5kg': 'buy_btn_1RxLIIEOlIsLAXPbpkLNt0Uw', // コシヒカリ   5kg
+      'komeB:5kg': 'buy_btn_1RxLH6EOlIsLAXPbJLQvuP1O', // ふさおとめ   5kg
+      // 未設定のサイズは、StripeでBuy Button作成後ここに追記：
+      // 'imoA:3kg': 'buy_btn_xxx',
+      // 'imoB:3kg': 'buy_btn_xxx',
+      // 'komeA:10kg': 'buy_btn_xxx',
+      // 'komeB:10kg': 'buy_btn_xxx',
     };
 
-    // Stripe 公開鍵（Buy Button の属性に渡す用）
     const PUBLISHABLE_KEY = 'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y';
 
     function renderPicker(key){
@@ -171,14 +170,13 @@
       const slot   = picker.querySelector('.buy-slot');
       if(!slot) return;
 
-      // いったんリセット
       slot.innerHTML = '';
 
       if(buyId){
         const btn = document.createElement('stripe-buy-button');
         btn.setAttribute('buy-button-id', buyId);
         btn.setAttribute('publishable-key', PUBLISHABLE_KEY);
-        // 必要ならロケール固定（日本語固定にしたい場合）
+        // 日本語固定したい場合は↓コメントアウトを外す
         // btn.setAttribute('locale', 'ja');
         slot.appendChild(btn);
       }else{
@@ -193,21 +191,19 @@
         const meta = PRICE_MAP[key];
         if(!meta || !meta.sizes?.length){ alert('サイズ定義がありません: ' + key); return; }
 
-        // 既存のパネルと.open状態をリセット（常に1つだけ開く）
+        // 既存のパネルと.open状態をリセット
         document.querySelectorAll('.picker').forEach(p=>p.remove());
         document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
 
-        // このカードを“開いた”状態へ
+        // 開く
         card.classList.add('open');
-
-        // カード直後にパネルを挿入
         card.insertAdjacentHTML('afterend', renderPicker(key));
 
         const picker  = card.nextElementSibling;
         const sizeBox = picker.querySelector('.size-choices');
         const closeBtn= picker.querySelector('.close-picker');
 
-        // 初回描画（デフォルト選択サイズでボタン生成）
+        // 初回描画
         mountBuyButton(picker, key);
 
         // サイズ変更時も差し替え
