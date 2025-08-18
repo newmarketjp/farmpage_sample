@@ -24,7 +24,7 @@
     :root{
       --bg:#f6faf7; --panel:#ffffff; --muted:#f3f4f6; --line:#e5e7eb;
       --text:#111827; --sub:#6b7280; --brand:#0ea47a; --accent:#10b981; --warn:#f59e0b;
-      --pane-width: 440px;
+      --pane-width: 440px; /* カード/パネルの基準幅 */
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
@@ -134,6 +134,7 @@
       // 'komeB:10kg': 'buy_btn_xxx_komeB_10kg',
     };
 
+    // Stripe 公開鍵（Buy Button の属性に渡す用）
     const PUBLISHABLE_KEY = 'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y';
 
     function renderPicker(key){
@@ -161,7 +162,7 @@
         </div>`;
     }
 
-    // 選択サイズに応じて Buy Button を差し替え
+    // 選択サイズに応じて Stripe Buy Button を差し替え
     function mountBuyButton(picker, productKey){
       const chosen = picker.querySelector('.size-chip[aria-checked="true"]');
       const label  = chosen?.dataset.label;
@@ -170,13 +171,15 @@
       const slot   = picker.querySelector('.buy-slot');
       if(!slot) return;
 
-      slot.innerHTML = ''; // クリア
+      // いったんリセット
+      slot.innerHTML = '';
 
       if(buyId){
-        // 動的にカスタム要素を生成してマウント
         const btn = document.createElement('stripe-buy-button');
         btn.setAttribute('buy-button-id', buyId);
         btn.setAttribute('publishable-key', PUBLISHABLE_KEY);
+        // 必要ならロケール固定（日本語固定にしたい場合）
+        // btn.setAttribute('locale', 'ja');
         slot.appendChild(btn);
       }else{
         slot.innerHTML = `<div class="notice">このサイズのペイメントリンクは未設定です。StripeでBuy Buttonを作成後、BUY_MAP['${mapKey}'] にIDを追記してください。</div>`;
@@ -204,7 +207,7 @@
         const sizeBox = picker.querySelector('.size-choices');
         const closeBtn= picker.querySelector('.close-picker');
 
-        // 初回描画
+        // 初回描画（デフォルト選択サイズでボタン生成）
         mountBuyButton(picker, key);
 
         // サイズ変更時も差し替え
