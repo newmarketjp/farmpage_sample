@@ -122,7 +122,6 @@
     };
 
     // Buy Button ID（サイズごとに割当）
-    // ※いただいた4つを反映。未設定サイズはコメントの行に追記してください。
     const BUY_MAP = {
       'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', // シルクスイート 1kg
       // 'imoA:3kg': 'buy_btn_xxx_imoA_3kg',
@@ -137,7 +136,7 @@
       // 'komeB:10kg': 'buy_btn_xxx_komeB_10kg',
     };
 
-    // 公開鍵（Buy Button属性で自動使用されます。Stripeが内部で検証）
+    // 公開鍵（Buy Button属性に渡す）
     const PUBLISHABLE_KEY = 'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y';
 
     function renderPicker(key){
@@ -164,7 +163,7 @@
         </div>`;
     }
 
-    // 選択サイズに応じて Buy Button を差し替え（遷移はせず、その場に表示）
+    // 選択サイズに応じて Buy Button をその場で表示
     function mountBuyButton(picker, productKey, label){
       const mapKey = `${productKey}:${label}`;
       const buyId  = BUY_MAP[mapKey];
@@ -176,14 +175,14 @@
         const btn = document.createElement('stripe-buy-button');
         btn.setAttribute('buy-button-id', buyId);
         btn.setAttribute('publishable-key', PUBLISHABLE_KEY);
-        // btn.setAttribute('locale', 'ja'); // 日本語固定したい場合
+        // btn.setAttribute('locale', 'ja'); // 必要なら日本語固定
         slot.appendChild(btn);
       }else{
         slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。Stripeで作成後、<code>BUY_MAP['${mapKey}']</code> にIDを追記してください。</div>`;
       }
     }
 
-    // クリック → 右パネル表示（同時に他の開きを閉じる）
+    // カードをクリック → 右パネルに Buy Button
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
