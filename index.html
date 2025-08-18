@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Stripe Buy Button（1回だけ読み込み） -->
+  <!-- Stripe Buy Button（※1回だけ読み込み） -->
   <script async src="https://js.stripe.com/v3/buy-button.js"></script>
 
   <style>
@@ -121,22 +121,22 @@
       komeB:{ title:'ふさおとめ',     sizes:[{label:'5kg'},{label:'10kg'}] }
     };
 
-    // Buy Button ID（サイズごとに割当）
+    // ★ Buy Button ID（サイズごとに割当）— いただいた4つを反映済み
     const BUY_MAP = {
       'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', // シルクスイート 1kg
-      // 'imoA:3kg': 'buy_btn_xxx_imoA_3kg',
+      // 'imoA:3kg': 'buy_btn_＜シルクスイート3kg＞',   // ←用意できたら追記
 
       'imoB:1kg': 'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', // べにはるか 1kg
-      // 'imoB:3kg': 'buy_btn_xxx_imoB_3kg',
+      // 'imoB:3kg': 'buy_btn_＜べにはるか3kg＞',       // ←用意できたら追記
 
       'komeA:5kg': 'buy_btn_1RxLIIEOlIsLAXPbpkLNt0Uw', // コシヒカリ 5kg
-      // 'komeA:10kg': 'buy_btn_xxx_komeA_10kg',
+      // 'komeA:10kg': 'buy_btn_＜コシヒカリ10kg＞',     // ←用意できたら追記
 
       'komeB:5kg': 'buy_btn_1RxLH6EOlIsLAXPbJLQvuP1O', // ふさおとめ 5kg
-      // 'komeB:10kg': 'buy_btn_xxx_komeB_10kg',
+      // 'komeB:10kg': 'buy_btn_＜ふさおとめ10kg＞',     // ←用意できたら追記
     };
 
-    // 公開鍵（Buy Button属性に渡す）
+    // 公開鍵（Buy Buttonへ属性で渡す）
     const PUBLISHABLE_KEY = 'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y';
 
     function renderPicker(key){
@@ -163,7 +163,7 @@
         </div>`;
     }
 
-    // 選択サイズに応じて Buy Button をその場で表示
+    // 選択サイズに応じて Buy Button をその場で表示（遷移なし）
     function mountBuyButton(picker, productKey, label){
       const mapKey = `${productKey}:${label}`;
       const buyId  = BUY_MAP[mapKey];
