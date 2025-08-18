@@ -18,19 +18,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* --- Brandable palette (必要に応じて微調整OK) --- */
     :root{
-      --bg:#f6faf7;         /* 明るい背景 */
-      --panel:#ffffff;      /* カード */
-      --muted:#f3f4f6;      /* 薄い面 */
-      --line:#e5e7eb;       /* 枠線 */
-      --text:#111827;       /* 文字濃色 */
-      --sub:#6b7280;        /* サブ文字 */
-      --brand:#0ea47a;      /* ブランド系アクセント */
-      --accent:#10b981;     /* 強めの緑 */
-      --warn:#f59e0b;       /* 注意 */
-      /* カード/パネル共通幅 */
-      --pane-width: 440px;
+      --bg:#f6faf7;
+      --panel:#ffffff;
+      --muted:#f3f4f6;
+      --line:#e5e7eb;
+      --text:#111827;
+      --sub:#6b7280;
+      --brand:#0ea47a;
+      --accent:#10b981;
+      --warn:#f59e0b;
+      --pane-width: 440px; /* カード/パネル共通の基準幅 */
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
@@ -46,20 +44,16 @@
     .h1{font-size:28px;font-weight:700;margin:0 0 8px}
     .sub{color:var(--sub)}
 
-    /* 縦一列（モバイル/タブレット） */
+    /* モバイル：縦一列 / デスクトップ：左カード + 右パネル */
     .grid{
       display:grid;
       gap:16px;
       grid-template-columns:1fr;
       align-items:start;
     }
-    /* デスクトップで「左：カード幅 / 右：パネル」2カラムにし、開いた行だけ横並びにする */
     @media (min-width: 960px){
       .grid{ grid-template-columns: var(--pane-width) minmax(0,1fr); }
     }
-
-    .card{background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,1));border:1px solid var(--line);border-radius:16px;overflow:hidden}
-    .panel{padding:20px 20px;background:var(--panel)}
 
     .product-card{
       border:1px solid var(--line);
@@ -70,10 +64,14 @@
       width:100%;
       max-width:var(--pane-width);
       justify-self:start;
-      grid-column:1 / -1;  /* 通常は縦一列（行全幅） */
+      grid-column:1 / -1; /* 通常は行全幅（縦並び） */
     }
+    /* 開いたカードは左カラムに固定 & 縦にストレッチして右パネルと同じ高さに */
     @media (min-width: 960px){
-      .product-card.open{ grid-column:1 / 2; } /* 開いたカードは左カラムに固定 */
+      .product-card.open{
+        grid-column:1 / 2;
+        align-self:stretch;   /* ← これで高さが右パネルに揃う */
+      }
     }
 
     .product-card .meta{padding:10px 12px}
@@ -93,7 +91,7 @@
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
-    /* 購入パネル */
+    /* 右側の購入パネル */
     .picker{
       border:1px solid var(--line);
       border-radius:14px;
@@ -103,12 +101,13 @@
       width:100%;
       max-width:var(--pane-width);
       justify-self:start;
-      grid-column:1 / -1;   /* モバイルでは下に表示（行全幅） */
+      grid-column:1 / -1; /* モバイル時は下に全幅 */
       align-self:start;
     }
     @media (min-width: 960px){
-      .picker{ grid-column:2 / 3; }  /* デスクトップでは右カラムに表示 */
+      .picker{ grid-column:2 / 3; }
     }
+
     .picker h2{margin:0}
     .form-grid{display:grid;gap:10px;margin-top:12px}
     @media(min-width:720px){
@@ -139,31 +138,24 @@
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
     <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 数量 → お届け先入力 → Stripe決済（カート無し）。</p>
 
-    <!-- 縦一列（開いた行だけデスクトップで右にパネル） -->
     <section class="grid" id="product-list">
-      <!-- 芋A -->
       <article class="product-card" data-product="imoA">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B7%E3%83%AB%E3%82%AF%E3%82%B9%E3%82%A4%E3%83%BC%E3%83%88" alt="シルクスイート">
         <div class="meta"><div>シルクスイート</div><div class="sub">¥580〜</div></div>
       </article>
-      <!-- 芋B -->
       <article class="product-card" data-product="imoB">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B9%E3%81%AB%E3%81%AF%E3%82%8B%E3%81%8B" alt="べにはるか">
         <div class="meta"><div>べにはるか</div><div class="sub">¥480〜</div></div>
       </article>
-      <!-- 米A -->
       <article class="product-card" data-product="komeA">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B3%E3%82%B7%E3%83%92%E3%82%AB%E3%83%AA" alt="コシヒカリ">
         <div class="meta"><div>コシヒカリ</div><div class="sub">¥2,480〜</div></div>
       </article>
-      <!-- 米B -->
       <article class="product-card" data-product="komeB">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B5%E3%81%95%E3%81%8A%E3%81%A8%E3%82%81" alt="ふさおとめ">
         <div class="meta"><div>ふさおとめ</div><div class="sub">¥2,280〜</div></div>
       </article>
     </section>
-
-    <!-- パネルはJSで商品カード直後に差し込み（右カラムに出る） -->
   </main>
 
   <footer class="container">
@@ -171,42 +163,17 @@
   </footer>
 
   <script>
-    // 年
     document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Stripe 公開鍵（差し替え）
     const stripe = Stripe('pk_test_CHANGE_ME');
 
-    // 商品 → サイズ → Price ID（差し替え）
     const PRICE_MAP = {
-      // 米
-      komeA: { title: 'コシヒカリ',
-        sizes: [
-          { label: '5kg',  priceId: 'price_xxx_komeA_5kg' },
-          { label: '10kg', priceId: 'price_xxx_komeA_10kg' }
-        ] },
-      komeB: { title: 'ふさおとめ',
-        sizes: [
-          { label: '5kg',  priceId: 'price_xxx_komeB_5kg' },
-          { label: '10kg', priceId: 'price_xxx_komeB_10kg' }
-        ] },
-      // 芋
-      imoA:  { title: 'シルクスイート',
-        sizes: [
-          { label: '1kg', priceId: 'price_xxx_imoA_1kg' },
-          { label: '3kg', priceId: 'price_xxx_imoA_3kg' }
-        ] },
-      imoB:  { title: 'べにはるか',
-        sizes: [
-          { label: '1kg', priceId: 'price_xxx_imoB_1kg' },
-          { label: '3kg', priceId: 'price_xxx_imoB_3kg' }
-        ] }
+      komeA: { title: 'コシヒカリ', sizes: [{ label:'5kg', priceId:'price_xxx_komeA_5kg' },{ label:'10kg', priceId:'price_xxx_komeA_10kg' }] },
+      komeB: { title: 'ふさおとめ', sizes: [{ label:'5kg', priceId:'price_xxx_komeB_5kg' },{ label:'10kg', priceId:'price_xxx_komeB_10kg' }] },
+      imoA:  { title: 'シルクスイート', sizes: [{ label:'1kg', priceId:'price_xxx_imoA_1kg' },{ label:'3kg', priceId:'price_xxx_imoA_3kg' }] },
+      imoB:  { title: 'べにはるか', sizes: [{ label:'1kg', priceId:'price_xxx_imoB_1kg' },{ label:'3kg', priceId:'price_xxx_imoB_3kg' }] }
     };
-
-    // 47都道府県
     const PREFS = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
 
-    // パネルのテンプレ（ID重複を避けるためクラスで取得）
     function renderPicker(key){
       const meta = PRICE_MAP[key];
       const sizeChips = meta.sizes.map((s,i)=>
@@ -221,12 +188,10 @@
             <h2 class="h1" style="font-size:20px;margin:0">購入：${meta.title}</h2>
             <button class="btn secondary close-picker">閉じる</button>
           </div>
-
           <div style="margin-top:8px">
             <label class="sub">サイズを選択</label>
             <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
           </div>
-
           <div style="margin-top:12px">
             <label class="sub">数量を選択</label>
             <div class="qty" aria-label="数量">
@@ -236,7 +201,6 @@
             </div>
             <div class="help">※ 1以上の半角数字のみ</div>
           </div>
-
           <div class="form-grid">
             <div class="full">
               <label class="sub" for="">氏名</label>
@@ -258,7 +222,6 @@
               <input class="input ship-addr2" type="text" placeholder="〇〇マンション101号室" autocomplete="address-line2">
             </div>
           </div>
-
           <div class="cta">
             <button class="btn primary do-checkout">Stripeで購入</button>
           </div>
@@ -266,14 +229,13 @@
         </div>`;
     }
 
-    // 数量のバリデーション（整数・最小1）
     function sanitizeQty(input){
       const val = Math.max(1, parseInt(String(input.value).replace(/[^0-9]/g,''),10) || 1);
       input.value = val;
       return val;
     }
 
-    // 商品クリック → デスクトップでは右パネル、モバイルでは下パネル
+    // クリックで右パネルを出し、左カードに.openを付与（高さを右に合わせる）
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
@@ -282,17 +244,16 @@
           alert('商品またはサイズ定義がありません: ' + key); return;
         }
 
-        // 既存のパネルと.open状態をリセット（常に1つだけ開く）
+        // 一旦リセット
         document.querySelectorAll('.picker').forEach(p=>p.remove());
         document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
 
-        // このカードを“開いた”状態へ（CSSで左カラムに固定）
+        // 左カードを“開いた”状態に
         card.classList.add('open');
 
-        // カード直後にパネルを挿入（CSSで右カラムに配置）
+        // 右パネルを追加
         card.insertAdjacentHTML('afterend', renderPicker(key));
 
-        // 要素参照（クラスでスコープ）
         const picker    = card.nextElementSibling;
         const sizeBox   = picker.querySelector('.size-choices');
         const qtyInput  = picker.querySelector('.qty-input');
@@ -300,21 +261,18 @@
         const incBtn    = picker.querySelector('.qty-inc');
         const closeBtn  = picker.querySelector('.close-picker');
 
-        // サイズ選択
         sizeBox.addEventListener('click',(e)=>{
           const chip = e.target.closest('.size-chip'); if(!chip) return;
           sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
           chip.setAttribute('aria-checked','true');
         });
-
-        // 数量（クリック・手入力どちらも整える）
         incBtn.onclick = ()=>{ qtyInput.value = sanitizeQty({value:(+qtyInput.value||1)+1}); };
         decBtn.onclick = ()=>{ qtyInput.value = Math.max(1, sanitizeQty(qtyInput)-1); };
         qtyInput.addEventListener('input', ()=> sanitizeQty(qtyInput));
         qtyInput.addEventListener('blur',  ()=> sanitizeQty(qtyInput));
         qtyInput.addEventListener('keydown', (e)=>{ if(e.key==='e'||e.key==='E'||e.key==='-'||e.key==='+') e.preventDefault(); });
 
-        // 閉じる（.open も解除）
+        // 閉じる
         closeBtn.onclick = ()=> {
           picker.remove();
           card.classList.remove('open');
@@ -325,7 +283,6 @@
           const chosen = sizeBox.querySelector('.size-chip[aria-checked="true"]');
           if(!chosen){ alert('サイズを選択してください'); return; }
 
-          // 配送先
           const name  = picker.querySelector('.ship-name').value.trim();
           const pref  = picker.querySelector('.ship-pref').value;
           const addr1 = picker.querySelector('.ship-addr1').value.trim();
@@ -333,18 +290,16 @@
           if(!name || !pref || !addr1){
             alert('氏名・都道府県・住所1は必須です'); return;
           }
-
           const priceId = chosen.dataset.price;
           const qty     = sanitizeQty(qtyInput);
 
           try{
-            const res = await fetch('https://YOUR_SERVER/create-checkout-session', { // ←差し替え
+            const res = await fetch('https://YOUR_SERVER/create-checkout-session', {
               method: 'POST',
               headers: {'Content-Type':'application/json'},
               body: JSON.stringify({
                 priceId,
                 quantity: qty,
-                // サーバー側で metadata や order レコードに保存してください
                 metadata: { product: key, size: chosen.dataset.label, name, prefecture: pref, address1: addr1, address2: addr2 }
               })
             });
