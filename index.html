@@ -46,7 +46,7 @@
       display:grid;
       gap:16px;
       grid-template-columns:1fr;
-      align-items:stretch; /* ←右パネルの高さに合わせて左カードも伸ばす */
+      align-items:stretch;
     }
     @media (min-width:960px){
       .grid{ grid-template-columns: var(--pane-width) minmax(0,1fr); }
@@ -62,13 +62,12 @@
       max-width:var(--pane-width);
       justify-self:start;
       grid-column:1 / 2;
-      align-self:stretch;  /* ←行高に合わせる */
-      height:100%;        /* ←行高に合わせる */
+      align-self:stretch;
+      height:100%;
     }
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
-
-    /* 商品名は視覚的に非表示（1行目だけ隠す） */
+    /* 商品名は非表示（1行目だけ隠す） */
     .product-card .meta > div:first-child{ display:none; }
 
     .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;}
@@ -79,24 +78,32 @@
     .notice{font-size:12px;color:var(--sub);margin-top:8px}
     .help{font-size:12px;color:var(--sub)}
 
-    /* 右側の購入パネル（全商品ぶんを縦に並べる） */
+    /* 右側の購入パネル：中身を中央に */
     .picker{
       border:1px solid var(--line);
       border-radius:14px;
       background:var(--panel);
       padding:16px;
-      margin:px 0;
+      margin:12px 0;               /* ← typo修正 */
       width:100%;
       max-width:var(--pane-width);
       justify-self:start;
       grid-column:2 / 3;
-      align-self:stretch; /* ←行高に合わせる */
-    }
-    .picker h2{margin:0}
-    .buy-slot{margin-top:14px;}
-    .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+      align-self:stretch;
 
-    /* モバイルは高さを自動に戻す（縦長になりすぎないように） */
+      /* ▼ここからセンタリング */
+      display:flex;
+      flex-direction:column;
+      justify-content:center;      /* 縦方向中央 */
+      align-items:center;          /* 横方向中央 */
+      text-align:center;           /* テキスト中央 */
+    }
+    .picker-head{display:flex;justify-content:center;align-items:center;width:100%;}
+    .picker .size-choices{display:flex;justify-content:center;}
+    .buy-slot{margin-top:14px; display:flex; justify-content:center; width:100%;}
+    .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+
+    /* モバイルは高さを自動に戻す */
     @media (max-width:959px){
       .product-card, .picker{ height:auto; align-self:start; grid-column:1 / -1; }
     }
@@ -174,7 +181,7 @@
         </button>`).join('');
       return `
         <div class="picker" data-open-for="${key}">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div class="picker-head">
             <h2 class="h1" style="font-size:20px;margin:0">購入：${meta.title}</h2>
           </div>
           <div style="margin-top:8px">
