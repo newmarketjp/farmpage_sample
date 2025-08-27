@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | Newmarket happy grain</title>
-  <meta name="description" content="商品をクリック → サイズ選択 → Stripe Buy Buttonで決済。" />
+  <meta name="description" content="商品をクリック → サイズ選択 → 右側に Stripe Buy Button が表示されます。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | Newmarket happy grain" />
-  <meta property="og:description" content="商品をクリック → サイズ選択 → Stripe Buy Buttonで決済。" />
+  <meta property="og:description" content="商品をクリック → サイズ選択 → 右側に Stripe Buy Button が表示されます。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -115,28 +115,110 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // サイズ定義（表示用ラベル）
+    // 表示用サイズ
     const PRICE_MAP = {
       imoA: { title:'シルクスイート', sizes:[{label:'1kg'},{label:'3kg'}] },
       imoB: { title:'べにはるか',     sizes:[{label:'1kg'},{label:'3kg'}] },
-      // ▼ 米は「30kgのみ」
+      // 米は「30kgのみ」
       komeA:{ title:'コシヒカリ',     sizes:[{label:'30kg'}] },
       komeB:{ title:'ふさおとめ',     sizes:[{label:'30kg'}] }
     };
 
-    // ★ Buy Button ID（サイズごとに割当）
-    // 既存：芋 1kg 分はそのまま／米は30kgキーに変更（IDは未設定なので後で追記）
+    /* Buy Button 割り当て
+       - 各エントリは { id: 'buy_btn_...', key: 'pk_...' } 形式
+       - これで test / live をボタン単位で切替可能
+    */
     const BUY_MAP = {
-      'imoA:1kg': 'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', // シルクスイート 1kg
-      // 'imoA:3kg': 'buy_btn_＜シルクスイート3kg＞',
+      // 芋（テスト環境のまま）
+      'imoA:1kg': { id:'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', key:'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y' },
+      // 'imoA:3kg': { id:'buy_btn_＜シルクスイート3kg（test or live）＞', key:'pk_...' },
 
-      'imoB:1kg': 'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', // べにはるか 1kg
-      // 'imoB:3kg': 'buy_btn_＜べにはるか3kg＞',
+      'imoB:1kg': { id:'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', key:'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y' },
+      // 'imoB:3kg': { id:'buy_btn_＜べにはるか3kg＞', key:'pk_...' },
 
-      // ▼ ここに各30kgの buy_button_id を追記してください
-      // 例）'komeA:30kg': 'buy_btn_XXXXXXXXXXXXXXXX',
-      // 例）'komeB:30kg': 'buy_btn_YYYYYYYYYYYYYYYY',
+      // 米（本番環境）
+      'komeA:30kg': { id:'buy_btn_1S0c68EOlIsLAXPbmhxl4P7d', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' }, // コシヒカリ 30kg
+      'komeB:30kg': { id:'buy_btn_1S0c43EOlIsLAXPbf9UBkb9l', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' }, // ふさおとめ 30kg
     };
 
-    // 公開鍵（Buy Buttonへ属性で渡す）
-    const PUBLISHABLE_KE_
+    function renderPicker(key){
+      const meta = PRICE_MAP[key];
+      const sizeChips = meta.sizes.map((s,i)=>`
+        <button class="chip size-chip" type="button" role="option"
+                aria-checked="${i===0}" data-label="${s.label}">
+          ${s.label}
+        </button>`).join('');
+
+      return `
+        <div class="picker" data-open-for="${key}">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h2 class="h1" style="font-size:20px;margin:0">購入：${meta.title}</h2>
+            <button class="btn secondary close-picker">閉じる</button>
+          </div>
+
+          <div style="margin-top:8px">
+            <label class="sub">サイズを選択（右に決済カードを表示）</label>
+            <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
+          </div>
+
+          <div class="buy-slot" aria-live="polite"></div>
+        </div>`;
+    }
+
+    // 選択サイズに応じて Buy Button をその場で表示（遷移なし）
+    function mountBuyButton(picker, productKey, label){
+      const mapKey = `${productKey}:${label}`;
+      const entry  = BUY_MAP[mapKey];
+      const slot   = picker.querySelector('.buy-slot');
+      if(!slot) return;
+      slot.innerHTML = '';
+
+      if(entry && entry.id && entry.key){
+        const btn = document.createElement('stripe-buy-button');
+        btn.setAttribute('buy-button-id', entry.id);
+        btn.setAttribute('publishable-key', entry.key);
+        btn.setAttribute('locale', 'ja');
+        slot.appendChild(btn);
+      }else{
+        slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。Stripeで作成後、<code>BUY_MAP['${mapKey}']</code> に {id, key} を追記してください。</div>`;
+      }
+    }
+
+    // カードをクリック → 右パネルに Buy Button
+    document.querySelectorAll('.product-card[data-product]').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const key = card.dataset.product;
+        const meta = PRICE_MAP[key];
+        if(!meta || !meta.sizes?.length){ alert('サイズ定義がありません: ' + key); return; }
+
+        // 既存の開きを閉じる
+        document.querySelectorAll('.picker').forEach(p=>p.remove());
+        document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
+
+        // 開く
+        card.classList.add('open');
+        card.insertAdjacentHTML('afterend', renderPicker(key));
+
+        const picker  = card.nextElementSibling;
+        const sizeBox = picker.querySelector('.size-choices');
+        const closeBtn= picker.querySelector('.close-picker');
+
+        // 初回：1つ目のサイズで表示
+        const initialLabel = meta.sizes[0].label;
+        mountBuyButton(picker, key, initialLabel);
+
+        // サイズ変更時：その場で差し替え
+        sizeBox.addEventListener('click',(e)=>{
+          const chip = e.target.closest('.size-chip'); if(!chip) return;
+          sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
+          chip.setAttribute('aria-checked','true');
+          mountBuyButton(picker, key, chip.dataset.label);
+        });
+
+        // 閉じる
+        closeBtn.onclick = ()=>{ picker.remove(); card.classList.remove('open'); };
+      });
+    });
+  </script>
+</body>
+</html>
