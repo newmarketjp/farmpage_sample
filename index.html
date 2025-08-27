@@ -129,4 +129,93 @@
       'komeB:30kg': { id:'buy_btn_1S0c43EOlIsLAXPbf9UBkb9l', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
     };
 
-    const
+    const TEST_PAYMENT_LINKS = {
+      'imoB:1kg':   'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01',
+      'komeA:30kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
+      'komeB:30kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
+    };
+
+    function renderPicker(key){
+      const meta = PRICE_MAP[key];
+      const sizeChips = meta.sizes.map((s,i)=>`
+        <button class="chip size-chip" type="button" role="option"
+                aria-checked="${i===0}" data-label="${s.label}">
+          ${s.label}
+        </button>`).join('');
+
+      return `
+        <div class="picker" data-open-for="${key}">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h2 class="h1" style="font-size:20px;margin:0">購入：${meta.title}</h2>
+            <button class="btn secondary close-picker">閉じる</button>
+          </div>
+
+          <div style="margin-top:8px">
+            <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
+          </div>
+
+          <div class="buy-slot" aria-live="polite"></div>
+          <div class="testlink" aria-live="polite"></div>
+        </div>`;
+    }
+
+    function mountBuyButton(picker, productKey, label){
+      const mapKey = `${productKey}:${label}`;
+      const entry  = BUY_MAP[mapKey];
+      const slot   = picker.querySelector('.buy-slot');
+      const testEl = picker.querySelector('.testlink');
+      if(!slot || !testEl) return;
+
+      slot.innerHTML = '';
+      if(entry && entry.id && entry.key){
+        const btn = document.createElement('stripe-buy-button');
+        btn.setAttribute('buy-button-id', entry.id);
+        btn.setAttribute('publishable-key', entry.key);
+        btn.setAttribute('locale', 'ja');
+        slot.appendChild(btn);
+      }else{
+        slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。<code>BUY_MAP['${mapKey}']</code> に {id, key} を追記してください。</div>`;
+      }
+
+      const testUrl = TEST_PAYMENT_LINKS[mapKey];
+      if(testUrl){
+        testEl.innerHTML = `
+          <a class="btn secondary" href="${testUrl}" target="_blank" rel="noopener">テスト決済リンクを開く</a>
+          <span class="help">※ 検証用：Stripe TEST環境の決済ページへ遷移します</span>`;
+      }else{
+        testEl.innerHTML = '';
+      }
+    }
+
+    document.querySelectorAll('.product-card[data-product]').forEach(card=>{
+      card.addEventListener('click', ()=>{
+        const key = card.dataset.product;
+        const meta = PRICE_MAP[key];
+        if(!meta || !meta.sizes?.length){ alert('サイズ定義がありません: ' + key); return; }
+
+        document.querySelectorAll('.picker').forEach(p=>p.remove());
+        document.querySelectorAll('.product-card.open').forEach(c=>c.classList.remove('open'));
+
+        card.classList.add('open');
+        card.insertAdjacentHTML('afterend', renderPicker(key));
+
+        const picker  = card.nextElementSibling;
+        const sizeBox = picker.querySelector('.size-choices');
+        const closeBtn= picker.querySelector('.close-picker');
+
+        const initialLabel = meta.sizes[0].label;
+        mountBuyButton(picker, key, initialLabel);
+
+        sizeBox.addEventListener('click',(e)=>{
+          const chip = e.target.closest('.size-chip'); if(!chip) return;
+          sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
+          chip.setAttribute('aria-checked','true');
+          mountBuyButton(picker, key, chip.dataset.label);
+        });
+
+        closeBtn.onclick = ()=>{ picker.remove(); card.classList.remove('open'); };
+      });
+    });
+  </script>
+</body>
+</html>
