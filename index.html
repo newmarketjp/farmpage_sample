@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | Newmarket happy grain</title>
-  <meta name="description" content="商品をクリック → サイズ選択 → 右側に Stripe Buy Button が表示されます。" />
+  <meta name="description" content="商品をクリック → サイズ選択 → 右側に Stripe Buy Button が表示されます。テスト環境用の決済リンクにも遷移可能。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | Newmarket happy grain" />
   <meta property="og:description" content="商品をクリック → サイズ選択 → 右側に Stripe Buy Button が表示されます。" />
@@ -49,7 +49,7 @@
       width:100%;max-width:var(--pane-width);justify-self:start;grid-column:1 / -1;
     }
     @media (min-width:960px){
-      .product-card.open{ grid-column:1 / 2; align-self:stretch; } /* 右パネルとバランスを揃える */
+      .product-card.open{ grid-column:1 / 2; align-self:stretch; }
     }
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
@@ -60,6 +60,7 @@
     .chip{padding:10px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#f7f7f9;color:var(--text)}
     .chip[aria-checked="true"],.chip:hover{outline:2px solid var(--brand)}
     .notice{font-size:12px;color:var(--sub);margin-top:8px}
+    .help{font-size:12px;color:var(--sub)}
 
     footer{border-top:1px solid var(--line);padding:24px;color:var(--sub);margin-top:40px}
 
@@ -72,6 +73,7 @@
     @media (min-width:960px){ .picker{ grid-column:2 / 3; } }
     .picker h2{margin:0}
     .buy-slot{margin-top:14px}
+    .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   </style>
 </head>
 <body>
@@ -84,7 +86,7 @@
 
   <main class="container">
     <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
-    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 右側に Stripe（Buy Button）が表示されます。</p>
+    <p class="sub" style="margin:0 0 12px">商品をクリック → サイズ選択 → 右側に Stripe（Buy Button）が表示されます。必要ならテスト決済リンクでの遷移も可能。</p>
 
     <section class="grid" id="product-list">
       <article class="product-card" data-product="imoA">
@@ -131,14 +133,26 @@
     const BUY_MAP = {
       // 芋（テスト環境のまま）
       'imoA:1kg': { id:'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', key:'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y' },
-      // 'imoA:3kg': { id:'buy_btn_＜シルクスイート3kg（test or live）＞', key:'pk_...' },
+      // 'imoA:3kg': { id:'buy_btn_＜シルクスイート3kg＞', key:'pk_test_...' },
 
       'imoB:1kg': { id:'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', key:'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y' },
-      // 'imoB:3kg': { id:'buy_btn_＜べにはるか3kg＞', key:'pk_...' },
+      // 'imoB:3kg': { id:'buy_btn_＜べにはるか3kg＞', key:'pk_test_...' },
 
       // 米（本番環境）
       'komeA:30kg': { id:'buy_btn_1S0c68EOlIsLAXPbmhxl4P7d', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' }, // コシヒカリ 30kg
       'komeB:30kg': { id:'buy_btn_1S0c43EOlIsLAXPbf9UBkb9l', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' }, // ふさおとめ 30kg
+    };
+
+    /* テスト環境の Payment Link（遷移先）
+       - ある場合のみ「テスト決済リンクを開く」ボタンを表示
+       - 価格や内容はPayment Link側の設定が優先されます
+    */
+    const TEST_PAYMENT_LINKS = {
+      'imoB:1kg':   'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01', // べにはるか
+      'komeA:30kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02', // コシヒカリ 30kg（検証用）
+      'komeB:30kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03', // ふさおとめ 30kg（検証用）
+      // 'imoA:1kg': 'https://buy.stripe.com/test_＜シルクスイート1kg＞',
+      // 'imoA:3kg': 'https://buy.stripe.com/test_＜シルクスイート3kg＞',
     };
 
     function renderPicker(key){
@@ -162,17 +176,20 @@
           </div>
 
           <div class="buy-slot" aria-live="polite"></div>
+          <div class="testlink" aria-live="polite"></div>
         </div>`;
     }
 
-    // 選択サイズに応じて Buy Button をその場で表示（遷移なし）
+    // 選択サイズに応じて Buy Button をその場で表示（遷移なし）＆ テストリンクボタン
     function mountBuyButton(picker, productKey, label){
       const mapKey = `${productKey}:${label}`;
       const entry  = BUY_MAP[mapKey];
       const slot   = picker.querySelector('.buy-slot');
-      if(!slot) return;
-      slot.innerHTML = '';
+      const testEl = picker.querySelector('.testlink');
+      if(!slot || !testEl) return;
 
+      // Buy Button
+      slot.innerHTML = '';
       if(entry && entry.id && entry.key){
         const btn = document.createElement('stripe-buy-button');
         btn.setAttribute('buy-button-id', entry.id);
@@ -180,11 +197,21 @@
         btn.setAttribute('locale', 'ja');
         slot.appendChild(btn);
       }else{
-        slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。Stripeで作成後、<code>BUY_MAP['${mapKey}']</code> に {id, key} を追記してください。</div>`;
+        slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。<code>BUY_MAP['${mapKey}']</code> に {id, key} を追記してください。</div>`;
+      }
+
+      // テスト決済リンク（任意で遷移）
+      const testUrl = TEST_PAYMENT_LINKS[mapKey];
+      if(testUrl){
+        testEl.innerHTML = `
+          <a class="btn secondary" href="${testUrl}" target="_blank" rel="noopener">テスト決済リンクを開く</a>
+          <span class="help">※ 検証用：Stripe TEST環境の決済ページへ遷移します</span>`;
+      }else{
+        testEl.innerHTML = '';
       }
     }
 
-    // カードをクリック → 右パネルに Buy Button
+    // カードをクリック → 右パネルに Buy Button & テストリンク
     document.querySelectorAll('.product-card[data-product]').forEach(card=>{
       card.addEventListener('click', ()=>{
         const key = card.dataset.product;
