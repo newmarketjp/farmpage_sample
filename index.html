@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | まるはし</title>
-  <meta name="description" content="各商品の Stripe Buy Button を右側に常時表示します。" />
+  <meta name="description" content="各商品の決済ページ（Stripe Payment Links）を右側に常時表示します。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | まるはし" />
-  <meta property="og:description" content="各商品の Stripe Buy Button を右側に常時表示します。" />
+  <meta property="og:description" content="各商品の決済ページ（Stripe Payment Links）を右側に常時表示します。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -16,9 +16,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Stripe Buy Button（1回だけ読み込み） -->
-  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
 
   <style>
     :root{
@@ -34,7 +31,7 @@
     header{border-bottom:1px solid var(--line);background:rgba(255,255,255,0.7);backdrop-filter:saturate(120%) blur(6px);position:sticky;top:0;z-index:40}
     .topbar{display:flex;align-items:center;gap:16px;padding:12px 24px}
 
-    /* 新ロゴ＋社名（まるはし） */
+    /* ロゴ＋社名（まるはし） */
     .brand{
       display:flex; align-items:center; gap:10px;
       font-weight:800; letter-spacing:.2px; line-height:1.2;
@@ -167,19 +164,19 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // 米のみ定義
+    // 米のみ定義（30kg固定）
     const PRICE_MAP = {
       komeA:{ title:'コシヒカリ', sizes:[{label:'30kg'}] },
       komeB:{ title:'ふさおとめ', sizes:[{label:'30kg'}] }
     };
 
-    // Buy Button のIDと公開鍵（live）
-    const BUY_MAP = {
-      'komeA:30kg': { id:'buy_btn_1S0c68EOlIsLAXPbmhxl4P7d', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
-      'komeB:30kg': { id:'buy_btn_1S0c43EOlIsLAXPbf9UBkb9l', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
+    // ✅ 本番のPayment Links（Newmarket名義から「まるはし」名義に置き換え）
+    const LINK_MAP = {
+      'komeA:30kg': 'https://buy.stripe.com/7sYcN54qz17LgOParF7Zu01', // コシヒカリ
+      'komeB:30kg': 'https://buy.stripe.com/9B6dR99KT6s5fKL9nB7Zu00', // ふさおとめ
     };
 
-    // テスト決済リンク（あるものだけ）
+    // （必要に応じて）テスト決済リンク
     const TEST_PAYMENT_LINKS = {
       'komeA:30kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
       'komeB:30kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
@@ -205,22 +202,23 @@
         </div>`;
     }
 
-    function mountBuyButton(picker, productKey, label){
+    // 決済リンクを設置（Payment Links を新規タブで開く）
+    function mountPayLink(picker, productKey, label){
       const mapKey = `${productKey}:${label}`;
-      const entry  = BUY_MAP[mapKey];
+      const payUrl = LINK_MAP[mapKey];
       const slot   = picker.querySelector('.buy-slot');
       const testEl = picker.querySelector('.testlink');
       if(!slot || !testEl) return;
 
       slot.innerHTML = '';
-      if(entry && entry.id && entry.key){
-        const btn = document.createElement('stripe-buy-button');
-        btn.setAttribute('buy-button-id', entry.id);
-        btn.setAttribute('publishable-key', entry.key);
-        btn.setAttribute('locale', 'ja');
-        slot.appendChild(btn);
+      if(payUrl){
+        slot.innerHTML = `
+          <a class="btn primary" href="${payUrl}" target="_blank" rel="noopener"
+             aria-label="${productKey==='komeA'?'コシヒカリ':'ふさおとめ'} ${label} を購入">購入ページへ</a>
+          <div class="help" style="margin-top:6px">※ 外部のStripe決済ページ（まるはし名義）を新しいタブで開きます</div>
+        `;
       }else{
-        slot.innerHTML = `<div class="notice">このサイズの Buy Button が未設定です。<code>BUY_MAP['${mapKey}']</code> に {id, key} を追記してください。</div>`;
+        slot.innerHTML = `<div class="notice">このサイズの決済リンクが未設定です。<code>LINK_MAP['${mapKey}']</code> にURLを設定してください。</div>`;
       }
 
       const testUrl = TEST_PAYMENT_LINKS[mapKey];
@@ -246,13 +244,13 @@
       const sizeBox = picker.querySelector('.size-choices');
 
       const initialLabel = meta.sizes[0].label;
-      mountBuyButton(picker, key, initialLabel);
+      mountPayLink(picker, key, initialLabel);
 
       sizeBox.addEventListener('click',(e)=>{
         const chip = e.target.closest('.size-chip'); if(!chip) return;
         sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
         chip.setAttribute('aria-checked','true');
-        mountBuyButton(picker, key, chip.dataset.label);
+        mountPayLink(picker, key, chip.dataset.label);
       });
     });
 
