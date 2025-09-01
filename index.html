@@ -30,7 +30,6 @@
     .container{max-width:1200px;margin:auto;padding:24px}
     header{border-bottom:1px solid var(--line);background:rgba(255,255,255,0.7);backdrop-filter:saturate(120%) blur(6px);position:sticky;top:0;z-index:40}
     .topbar{display:flex;align-items:center;gap:10px;padding:12px 24px}
-    /* ロゴ＋社名 */
     .brand{display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none;font-weight:800}
     .brand img{width:32px;height:32px;object-fit:contain}
     .brand .name{font-size:20px;letter-spacing:.2px;line-height:1.2}
@@ -42,7 +41,7 @@
     .h1{font-size:28px;font-weight:700;margin:0 0 8px}
     .sub{color:var(--sub)}
 
-    /* 左：カード列 / 右：パネル列（2カラム） */
+    /* レイアウト */
     .grid{display:grid;gap:16px;grid-template-columns:1fr;align-items:stretch}
     @media (min-width:960px){ .grid{grid-template-columns:var(--pane-width) minmax(0,1fr)} }
 
@@ -53,12 +52,17 @@
     }
     .product-card .meta{padding:10px 12px}
     .product-card:hover{outline:2px solid var(--brand)}
-    /* 商品名1行目は非表示（小ポップからタイトルを消す） */
-    .product-card .meta > div:first-child{display:none}
+    .product-card .meta > div:first-child{display:none} /* 小ポップの1行目(商品名)を隠す */
 
-    .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;text-decoration:none}
-    .btn.secondary{background:var(--muted);color:var(--text)}
-    .btn.primary{background:linear-gradient(180deg,var(--brand),#099268);color:#fff;border-color:transparent}
+    .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border-radius:12px;border:1px solid var(--line);cursor:pointer;text-decoration:none;font-weight:700}
+    .btn.primary{
+      background:linear-gradient(180deg,var(--brand),#099268);
+      color:#fff;border-color:transparent;
+      font-size:18px;              /* ← 少し大きく */
+      padding:14px 20px;           /* ← 少し大きく */
+      min-width:200px;             /* 視認性アップ */
+    }
+    .btn.secondary{background:var(--muted);color:var(--text);padding:12px 14px;font-weight:600}
 
     /* 右の購入パネル（中身は中央寄せ） */
     .picker{
@@ -69,10 +73,19 @@
     }
     .picker-head{display:flex;justify-content:center;align-items:center;width:100%}
     .picker .size-choices{display:flex;justify-content:center}
-    .buy-slot{margin-top:14px;display:flex;justify-content:center;width:100%}
+    .buy-slot{margin-top:16px;display:flex;justify-content:center;width:100%}
     .price{margin:8px 0 0;font-weight:700;font-size:22px}
-    .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
-    .help{font-size:12px;color:var(--sub)}
+
+    /* サイズチップを少し大きく */
+    .chip{
+      padding:12px 16px;           /* ← 少し大きく */
+      border:1px solid var(--line);
+      border-radius:12px;
+      cursor:pointer;background:#f7f7f9;color:var(--text);
+      font-size:18px;              /* ← 少し大きく（30kgの文字） */
+      font-weight:600;
+    }
+    .chip[aria-checked="true"], .chip:hover{outline:2px solid var(--brand)}
 
     .priority{outline:2px solid var(--brand);box-shadow:0 0 0 4px rgba(14,164,122,.08)}
 
@@ -129,12 +142,6 @@
       'komeB:30kg': 'https://buy.stripe.com/9B6dR99KT6s5fKL9nB7Zu00', // ふさおとめ
     };
 
-    // ▼テスト用決済リンク（必要時のみ表示）
-    const TEST_PAYMENT_LINKS = {
-      'komeA:30kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
-      'komeB:30kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
-    };
-
     function renderPicker(key){
       const meta = PRICE_MAP[key];
       const sizeChips = meta.sizes.map((s,i)=>`
@@ -150,9 +157,7 @@
           <div style="margin-top:8px">
             <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
           </div>
-          <div class="price" aria-live="polite"></div>
           <div class="buy-slot" aria-live="polite"></div>
-          <div class="testlink" aria-live="polite"></div>
         </div>`;
     }
 
@@ -161,21 +166,8 @@
       const mapKey = `${productKey}:${label}`;
       const prodUrl = PRODUCTION_PAYMENT_LINKS[mapKey];
       const slot   = picker.querySelector('.buy-slot');
-      const testEl = picker.querySelector('.testlink');
       if(!slot || !prodUrl) return;
-
-      // 本番の購入ボタン
       slot.innerHTML = `<a class="btn primary" href="${prodUrl}" target="_blank" rel="noopener">購入する</a>`;
-
-      // テストリンク（あるときだけ表示）
-      const testUrl = TEST_PAYMENT_LINKS[mapKey];
-      if(testUrl){
-        testEl.innerHTML = `
-          <a class="btn secondary" href="${testUrl}" target="_blank" rel="noopener">テスト決済リンクを開く</a>
-          <span class="help">※ 検証用：Stripe TEST環境の決済ページへ遷移します</span>`;
-      }else{
-        testEl.innerHTML = '';
-      }
     }
 
     // ▼ページ表示時：米2商品の購入パネルを右に常時表示（上段=ふさおとめ）
@@ -218,9 +210,6 @@
         panel.classList.add('priority');
       }
     })();
-
-    // 年号
-    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
