@@ -105,18 +105,11 @@
     .buy-slot{margin-top:14px; display:flex; justify-content:center; width:100%;}
     .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
 
-    /* プライオリティ表示（ふさおとめ用の強調） */
+    /* 強調（ふさおとめ用） */
     .priority{
       outline:2px solid var(--brand);
       box-shadow:0 0 0 4px rgba(14,164,122,.08);
     }
-
-    .noticebar{
-      display:flex;gap:12px;align-items:center;justify-content:space-between;
-      background:#f0fdf7;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0 16px;
-    }
-    .noticebar .label{font-weight:600;color:#065f46}
-    .notice-actions{display:flex;gap:8px;flex-wrap:wrap}
 
     /* モバイルは高さを自動に戻す */
     @media (max-width:959px){
@@ -134,7 +127,6 @@
 
   <main class="container">
     <h1 class="h1" style="margin:12px 0 8px">商品一覧</h1>
-    <!-- 案内バーはJSで差し込み -->
 
     <section class="grid" id="product-list">
       <!-- 左カラム：商品カード（米のみ表示） -->
@@ -157,7 +149,7 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // ★ 芋を除外：米のみ定義
+    // 米のみ定義
     const PRICE_MAP = {
       komeA:{ title:'コシヒカリ', sizes:[{label:'30kg'}] },
       komeB:{ title:'ふさおとめ', sizes:[{label:'30kg'}] }
@@ -246,7 +238,7 @@
       });
     });
 
-    /* ふさおとめ（komeB）を最上段に移動＆強調、案内バー追加 */
+    /* ふさおとめ（komeB）を最上段に移動＆強調（案内バーは削除） */
     (function promoteKomeB(){
       const grid = document.getElementById('product-list');
       const card = grid.querySelector('.product-card[data-product="komeB"]');
@@ -259,20 +251,7 @@
         grid.insertBefore(panel, grid.firstChild);
         grid.insertBefore(card, grid.firstChild);
       }
-
-      const h1 = document.querySelector('main.container .h1');
-      const testUrl = TEST_PAYMENT_LINKS['komeB:30kg'];
-      if(h1){
-        const bar = document.createElement('div');
-        bar.className = 'noticebar';
-        bar.innerHTML = `
-          <div class="label">「ふさおとめ」ご購入のお客様がお待ちです</div>
-          <div class="notice-actions">
-            <a class="btn primary" href="#focus-komeB">ふさおとめの決済へ</a>
-            ${testUrl ? `<a class="btn secondary" href="${testUrl}" target="_blank" rel="noopener">テスト決済リンク</a>` : ``}
-          </div>`;
-        h1.insertAdjacentElement('afterend', bar);
-      }
+      // ※ 案内バー生成は削除済み
     })();
   </script>
 </body>
