@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>商品一覧 | まるはし</title>
-  <meta name="description" content="各商品の Stripe Buy Button を右側に常時表示します。" />
+  <meta name="description" content="各商品の決済リンク（Stripe Payment Links）を右側に常時表示します。" />
   <meta name="robots" content="index,follow" />
   <meta property="og:title" content="商品一覧 | まるはし" />
-  <meta property="og:description" content="各商品の Stripe Buy Button を右側に常時表示します。" />
+  <meta property="og:description" content="各商品の決済リンク（Stripe Payment Links）を右側に常時表示します。" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://example.com/" />
   <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=OG" />
@@ -16,9 +16,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Stripe Buy Button（埋め込み用。1回だけ読み込み） -->
-  <script async src="https://js.stripe.com/v3/buy-button.js"></script>
 
   <style>
     :root{
@@ -59,8 +56,9 @@
     /* 商品名1行目は非表示（小ポップからタイトルを消す） */
     .product-card .meta > div:first-child{display:none}
 
-    .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600}
+    .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;text-decoration:none}
     .btn.secondary{background:var(--muted);color:var(--text)}
+    .btn.primary{background:linear-gradient(180deg,var(--brand),#099268);color:#fff;border-color:transparent}
 
     /* 右の購入パネル（中身は中央寄せ） */
     .picker{
@@ -72,6 +70,7 @@
     .picker-head{display:flex;justify-content:center;align-items:center;width:100%}
     .picker .size-choices{display:flex;justify-content:center}
     .buy-slot{margin-top:14px;display:flex;justify-content:center;width:100%}
+    .price{margin:8px 0 0;font-weight:700;font-size:22px}
     .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
     .help{font-size:12px;color:var(--sub)}
 
@@ -124,13 +123,13 @@
       komeB:{ title:'ふさおとめ', sizes:[{label:'30kg'}] }
     };
 
-    // Stripe Buy Button（埋め込み）IDと公開鍵（LIVE）
-    const BUY_MAP = {
-      'komeA:30kg': { id:'buy_btn_1S0c68EOlIsLAXPbmhxl4P7d', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
-      'komeB:30kg': { id:'buy_btn_1S0c43EOlIsLAXPbf9UBkb9l', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
+    // ▼本番の決済リンク（まるはし）
+    const PRODUCTION_PAYMENT_LINKS = {
+      'komeA:30kg': 'https://buy.stripe.com/7sYcN54qz17LgOParF7Zu01', // コシヒカリ
+      'komeB:30kg': 'https://buy.stripe.com/9B6dR99KT6s5fKL9nB7Zu00', // ふさおとめ
     };
 
-    // 参考：テスト決済リンク（必要な場合のみ表示）
+    // ▼テスト用決済リンク（必要時のみ表示）
     const TEST_PAYMENT_LINKS = {
       'komeA:30kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
       'komeB:30kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
@@ -151,30 +150,24 @@
           <div style="margin-top:8px">
             <div class="choices size-choices" role="listbox" aria-label="サイズ">${sizeChips}</div>
           </div>
+          <div class="price" aria-live="polite"></div>
           <div class="buy-slot" aria-live="polite"></div>
           <div class="testlink" aria-live="polite"></div>
         </div>`;
     }
 
-    // 選択サイズに応じて Buy Button を埋め込む
-    function mountBuyButton(picker, productKey, label){
+    // 購入ボタン（Payment Link）を設置
+    function mountPaymentLink(picker, productKey, label){
       const mapKey = `${productKey}:${label}`;
-      const entry  = BUY_MAP[mapKey];
+      const prodUrl = PRODUCTION_PAYMENT_LINKS[mapKey];
       const slot   = picker.querySelector('.buy-slot');
       const testEl = picker.querySelector('.testlink');
-      if(!slot || !testEl) return;
+      if(!slot || !prodUrl) return;
 
-      slot.innerHTML = '';
-      if(entry && entry.id && entry.key){
-        const btn = document.createElement('stripe-buy-button');
-        btn.setAttribute('buy-button-id', entry.id);
-        btn.setAttribute('publishable-key', entry.key);
-        btn.setAttribute('locale', 'ja');
-        slot.appendChild(btn);
-      }else{
-        slot.innerHTML = `<div class="help">このサイズの Buy Button が未設定です。<code>BUY_MAP['${mapKey}']</code> に {id, key} を設定してください。</div>`;
-      }
+      // 本番の購入ボタン
+      slot.innerHTML = `<a class="btn primary" href="${prodUrl}" target="_blank" rel="noopener">購入する</a>`;
 
+      // テストリンク（あるときだけ表示）
       const testUrl = TEST_PAYMENT_LINKS[mapKey];
       if(testUrl){
         testEl.innerHTML = `
@@ -187,12 +180,13 @@
 
     // ▼ページ表示時：米2商品の購入パネルを右に常時表示（上段=ふさおとめ）
     const grid  = document.getElementById('product-list');
-    const cards = Array.from(grid.querySelectorAll('.product-card[data-product]'));
 
     // ふさおとめ(komeB)を先頭に
     const cardKomeB = grid.querySelector('.product-card[data-product="komeB"]');
     if (cardKomeB) grid.insertBefore(cardKomeB, grid.firstChild);
 
+    // それぞれのカードの直後にパネルを作成
+    const cards = Array.from(grid.querySelectorAll('.product-card[data-product]'));
     cards.forEach(card=>{
       const key = card.dataset.product;
       const meta = PRICE_MAP[key];
@@ -203,13 +197,13 @@
       const sizeBox = picker.querySelector('.size-choices');
 
       const initialLabel = meta.sizes[0].label;
-      mountBuyButton(picker, key, initialLabel);
+      mountPaymentLink(picker, key, initialLabel);
 
       sizeBox.addEventListener('click',(e)=>{
         const chip = e.target.closest('.size-chip'); if(!chip) return;
         sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
         chip.setAttribute('aria-checked','true');
-        mountBuyButton(picker, key, chip.dataset.label);
+        mountPaymentLink(picker, key, chip.dataset.label);
       });
     });
 
@@ -224,6 +218,9 @@
         panel.classList.add('priority');
       }
     })();
+
+    // 年号
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
