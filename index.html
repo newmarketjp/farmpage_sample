@@ -105,7 +105,7 @@
     .buy-slot{margin-top:14px; display:flex; justify-content:center; width:100%;}
     .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
 
-    /* 強調（ふさおとめ用） */
+    /* 強調表示（必要なら残す） */
     .priority{
       outline:2px solid var(--brand);
       box-shadow:0 0 0 4px rgba(14,164,122,.08);
@@ -134,7 +134,7 @@
         <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B3%E3%82%B7%E3%83%92%E3%82%AB%E3%83%AA" alt="コシヒカリ">
         <div class="meta"><div>コシヒカリ</div><div class="sub">¥17,000</div></div>
       </article>
-      <article class="product-card" data-product="komeB">
+      <article class="product-card priority" data-product="komeB">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B5%E3%81%95%E3%81%8A%E3%81%A8%E3%82%81" alt="ふさおとめ">
         <div class="meta"><div>ふさおとめ</div><div class="sub">¥17,000</div></div>
       </article>
@@ -238,20 +238,20 @@
       });
     });
 
-    /* ふさおとめ（komeB）を最上段に移動＆強調（案内バーは削除） */
+    /* ふさおとめ（komeB）を最上段に移動＆強調（※案内バーは削除） */
     (function promoteKomeB(){
       const grid = document.getElementById('product-list');
       const card = grid.querySelector('.product-card[data-product="komeB"]');
       if(!card) return;
       const panel = card.nextElementSibling; // 直後のpicker
       if(panel && panel.classList.contains('picker')){
-        panel.id = 'focus-komeB';
-        card.classList.add('priority');
-        panel.classList.add('priority');
+        // 最上段へ（カード→パネルの順で配置）
         grid.insertBefore(panel, grid.firstChild);
         grid.insertBefore(card, grid.firstChild);
+        // 強調クラス（必要なければこの2行を削除）
+        card.classList.add('priority');
+        panel.classList.add('priority');
       }
-      // ※ 案内バー生成は削除済み
     })();
   </script>
 </body>
