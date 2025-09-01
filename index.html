@@ -72,6 +72,8 @@
 
     .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-weight:600;}
     .btn.secondary{background:var(--muted);color:var(--text)}
+    .btn.primary{background:linear-gradient(180deg,var(--brand),#099268);color:#fff;border-color:transparent}
+
     .choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .chip{padding:10px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:#f7f7f9;color:var(--text)}
     .chip[aria-checked="true"],.chip:hover{outline:2px solid var(--brand)}
@@ -84,24 +86,37 @@
       border-radius:14px;
       background:var(--panel);
       padding:16px;
-      margin:12px 0;               /* ← typo修正 */
+      margin:12px 0;
       width:100%;
       max-width:var(--pane-width);
       justify-self:start;
       grid-column:2 / 3;
       align-self:stretch;
 
-      /* ▼ここからセンタリング */
       display:flex;
       flex-direction:column;
-      justify-content:center;      /* 縦方向中央 */
-      align-items:center;          /* 横方向中央 */
-      text-align:center;           /* テキスト中央 */
+      justify-content:center;      /* 縦中央 */
+      align-items:center;          /* 横中央 */
+      text-align:center;
+      scroll-margin-top:96px;      /* アンカー遷移のズレ補正（ヘッダー分） */
     }
     .picker-head{display:flex;justify-content:center;align-items:center;width:100%;}
     .picker .size-choices{display:flex;justify-content:center;}
     .buy-slot{margin-top:14px; display:flex; justify-content:center; width:100%;}
     .testlink{margin-top:10px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+
+    /* プライオリティ表示（ふさおとめ用の強調） */
+    .priority{
+      outline:2px solid var(--brand);
+      box-shadow:0 0 0 4px rgba(14,164,122,.08);
+    }
+
+    .noticebar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;
+      background:#f0fdf7;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0 16px;
+    }
+    .noticebar .label{font-weight:600;color:#065f46}
+    .notice-actions{display:flex;gap:8px;flex-wrap:wrap}
 
     /* モバイルは高さを自動に戻す */
     @media (max-width:959px){
@@ -118,18 +133,11 @@
   </header>
 
   <main class="container">
-    <h1 class="h1" style="margin:12px 0 16px">商品一覧</h1>
+    <h1 class="h1" style="margin:12px 0 8px">商品一覧</h1>
+    <!-- 案内バーはJSで差し込み -->
 
     <section class="grid" id="product-list">
-      <!-- 左カラム：商品カード -->
-      <article class="product-card" data-product="imoA">
-        <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B7%E3%83%AB%E3%82%AF%E3%82%B9%E3%82%A4%E3%83%BC%E3%83%88" alt="シルクスイート">
-        <div class="meta"><div>シルクスイート</div><div class="sub">¥580〜</div></div>
-      </article>
-      <article class="product-card" data-product="imoB">
-        <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B9%E3%81%AB%E3%81%AF%E3%82%8B%E3%81%8B" alt="べにはるか">
-        <div class="meta"><div>べにはるか</div><div class="sub">¥480〜</div></div>
-      </article>
+      <!-- 左カラム：商品カード（米のみ表示） -->
       <article class="product-card" data-product="komeA">
         <img src="https://via.placeholder.com/600x600.png?text=%E3%82%B3%E3%82%B7%E3%83%92%E3%82%AB%E3%83%AA" alt="コシヒカリ">
         <div class="meta"><div>コシヒカリ</div><div class="sub">¥17,000</div></div>
@@ -138,7 +146,7 @@
         <img src="https://via.placeholder.com/600x600.png?text=%E3%81%B5%E3%81%95%E3%81%8A%E3%81%A8%E3%82%81" alt="ふさおとめ">
         <div class="meta"><div>ふさおとめ</div><div class="sub">¥17,000</div></div>
       </article>
-      <!-- 右カラム：各商品の購入パネル（JSで4つ全部を差し込み） -->
+      <!-- 右カラム：各商品の購入パネル（JSで差し込み） -->
     </section>
   </main>
 
@@ -149,25 +157,20 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // 表示名＆サイズ
+    // ★ 芋を除外：米のみ定義
     const PRICE_MAP = {
-      imoA: { title:'シルクスイート', sizes:[{label:'1kg'},{label:'3kg'}] },
-      imoB: { title:'べにはるか',     sizes:[{label:'1kg'},{label:'3kg'}] },
-      komeA:{ title:'コシヒカリ',     sizes:[{label:'30kg'}] },
-      komeB:{ title:'ふさおとめ',     sizes:[{label:'30kg'}] }
+      komeA:{ title:'コシヒカリ', sizes:[{label:'30kg'}] },
+      komeB:{ title:'ふさおとめ', sizes:[{label:'30kg'}] }
     };
 
-    // Buy Button のIDと公開鍵（live/test混在OK）
+    // Buy Button のIDと公開鍵（live）
     const BUY_MAP = {
-      'imoA:1kg':   { id:'buy_btn_1RxItEEOlIsLAXPbrlPWgEsu', key:'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y' },
-      'imoB:1kg':   { id:'buy_btn_1RxLHlEOlIsLAXPbwYXSedij', key:'pk_test_51MpmrqEOlIsLAXPbhG3nnraXNQYGpEeSoEfO8YPmNNeqjrQFMYVfGIMCo1alSywBAIxQaG4t9mI0KVHI7s0K5z2J00R5ZpaV8y' },
       'komeA:30kg': { id:'buy_btn_1S0c68EOlIsLAXPbmhxl4P7d', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
       'komeB:30kg': { id:'buy_btn_1S0c43EOlIsLAXPbf9UBkb9l', key:'pk_live_51MpmrqEOlIsLAXPbhaLvbcCQCQdQLmQVHdPYwHxT5dVrSbMztcMG7PowxaNMCtixbqJxDB1jMktZNX8mZTRDHBWK003lRLIiFz' },
     };
 
     // テスト決済リンク（あるものだけ）
     const TEST_PAYMENT_LINKS = {
-      'imoB:1kg':   'https://buy.stripe.com/test_7sY7sL0kN6JMdu15Pd2cg01',
       'komeA:30kg': 'https://buy.stripe.com/test_cNi5kDaZr1ps1LjfpN2cg02',
       'komeB:30kg': 'https://buy.stripe.com/test_28E5kDaZrd8a3Tr0uT2cg03',
     };
@@ -220,7 +223,7 @@
       }
     }
 
-    // ▼ページ表示時に「全商品分」の購入パネルを右カラムへ自動作成して常時表示
+    // ▼ページ表示時：米2商品の購入パネルを右に常時表示
     const list = document.getElementById('product-list');
     const cards = Array.from(list.querySelectorAll('.product-card[data-product]'));
     cards.forEach(card=>{
@@ -228,16 +231,13 @@
       const meta = PRICE_MAP[key];
       if(!meta || !meta.sizes?.length) return;
 
-      // カード直後にパネルを挿入（右列に配置される）
       card.insertAdjacentHTML('afterend', renderPicker(key));
       const picker  = card.nextElementSibling;
       const sizeBox = picker.querySelector('.size-choices');
 
-      // 初期サイズでBuy Buttonを表示
       const initialLabel = meta.sizes[0].label;
       mountBuyButton(picker, key, initialLabel);
 
-      // サイズ切替
       sizeBox.addEventListener('click',(e)=>{
         const chip = e.target.closest('.size-chip'); if(!chip) return;
         sizeBox.querySelectorAll('.size-chip').forEach(c=>c.setAttribute('aria-checked','false'));
@@ -245,6 +245,35 @@
         mountBuyButton(picker, key, chip.dataset.label);
       });
     });
+
+    /* ふさおとめ（komeB）を最上段に移動＆強調、案内バー追加 */
+    (function promoteKomeB(){
+      const grid = document.getElementById('product-list');
+      const card = grid.querySelector('.product-card[data-product="komeB"]');
+      if(!card) return;
+      const panel = card.nextElementSibling; // 直後のpicker
+      if(panel && panel.classList.contains('picker')){
+        panel.id = 'focus-komeB';
+        card.classList.add('priority');
+        panel.classList.add('priority');
+        grid.insertBefore(panel, grid.firstChild);
+        grid.insertBefore(card, grid.firstChild);
+      }
+
+      const h1 = document.querySelector('main.container .h1');
+      const testUrl = TEST_PAYMENT_LINKS['komeB:30kg'];
+      if(h1){
+        const bar = document.createElement('div');
+        bar.className = 'noticebar';
+        bar.innerHTML = `
+          <div class="label">「ふさおとめ」ご購入のお客様がお待ちです</div>
+          <div class="notice-actions">
+            <a class="btn primary" href="#focus-komeB">ふさおとめの決済へ</a>
+            ${testUrl ? `<a class="btn secondary" href="${testUrl}" target="_blank" rel="noopener">テスト決済リンク</a>` : ``}
+          </div>`;
+        h1.insertAdjacentElement('afterend', bar);
+      }
+    })();
   </script>
 </body>
 </html>
